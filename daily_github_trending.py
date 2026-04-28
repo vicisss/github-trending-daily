@@ -153,3 +153,321 @@ def analyze_all(client: OpenAI, repos: list[dict], model: str) -> list[dict]:
         result = analyze_repo(client, repo, model)
         results.append(result)
     return results
+
+
+HTML_CSS = """<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0d1117; color: #c9d1d9; font-family: -apple-system, BlinkMacSystemFont,
+      'Segoe UI', 'Noto Sans SC', 'PingFang SC', sans-serif;
+    line-height: 1.7; padding: 40px 20px;
+  }
+  .container { max-width: 900px; margin: 0 auto; }
+  .header {
+    text-align: center; padding: 60px 0 40px;
+    border-bottom: 1px solid #21262d; margin-bottom: 48px;
+  }
+  .header h1 {
+    font-size: 2.2em; background: linear-gradient(135deg, #58a6ff, #bc8cff);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .header .date { color: #8b949e; margin-top: 8px; font-size: 1.05em; }
+  .header .summary {
+    margin-top: 20px; padding: 16px 24px; background: #161b22;
+    border-radius: 8px; border-left: 3px solid #58a6ff;
+    text-align: left; color: #8b949e; font-size: 0.95em;
+  }
+  .card {
+    background: #161b22; border: 1px solid #21262d; border-radius: 12px;
+    padding: 32px; margin-bottom: 28px;
+    transition: border-color 0.2s;
+  }
+  .card:hover { border-color: #30363d; }
+  .card-header {
+    display: flex; align-items: center; gap: 14px; margin-bottom: 18px;
+    flex-wrap: wrap;
+  }
+  .rank {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 36px; height: 36px; border-radius: 50%;
+    font-weight: 700; font-size: 0.95em; flex-shrink: 0;
+  }
+  .rank-1 { background: #f0c419; color: #0d1117; }
+  .rank-2 { background: #a3b4c2; color: #0d1117; }
+  .rank-3 { background: #cd7f32; color: #0d1117; }
+  .rank-other { background: #21262d; color: #8b949e; }
+  .repo-name { font-size: 1.15em; font-weight: 600; }
+  .repo-name a { color: #58a6ff; text-decoration: none; }
+  .repo-name a:hover { text-decoration: underline; }
+  .meta { display: flex; gap: 16px; flex-wrap: wrap; font-size: 0.85em; color: #8b949e; }
+  .meta span { display: inline-flex; align-items: center; gap: 4px; }
+  .lang-dot {
+    display: inline-block; width: 10px; height: 10px; border-radius: 50%;
+  }
+  .desc { color: #8b949e; font-size: 0.93em; margin-bottom: 20px; line-height: 1.6; }
+  .section { margin-top: 20px; }
+  .section h3 { font-size: 1em; margin-bottom: 10px; color: #e6edf3; }
+  .section ul { padding-left: 20px; color: #8b949e; font-size: 0.93em; }
+  .section ul li { margin-bottom: 6px; }
+  .pros-cons { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .pros { background: #0d2b1e; border-radius: 8px; padding: 16px; }
+  .cons { background: #2b0d0d; border-radius: 8px; padding: 16px; }
+  .pros h4 { color: #3fb950; font-size: 0.93em; margin-bottom: 8px; }
+  .cons h4 { color: #f85149; font-size: 0.93em; margin-bottom: 8px; }
+  .pros ul, .cons ul { color: #c9d1d9; font-size: 0.9em; }
+  .verdict { margin-top: 16px; padding: 12px 16px; background: #1a1a2e;
+    border-radius: 6px; font-style: italic; color: #bc8cff; font-size: 0.93em; }
+  .footer {
+    text-align: center; padding: 40px 0; color: #484f58; font-size: 0.85em;
+    border-top: 1px solid #21262d; margin-top: 20px;
+  }
+  .footer a { color: #58a6ff; }
+  @media (max-width: 640px) {
+    body { padding: 20px 12px; }
+    .card { padding: 20px; }
+    .pros-cons { grid-template-columns: 1fr; }
+    .header h1 { font-size: 1.5em; }
+  }
+</style>"""
+
+
+def format_analysis_html(analysis: str) -> str:
+    """把 AI 返回的 markdown 分析转为 HTML"""
+    sections = re.split(r'(?=### )', analysis.strip())
+    html_parts = []
+    verdict_text = ""
+
+    for sec in sections:
+        sec = sec.strip()
+        if sec.startswith("### 项目简介"):
+            content = sec.replace("### 项目简介", "").strip()
+            html_parts.append(f'<div class="section"><h3>📖 项目简介</h3><p style="color:#8b949e;font-size:0.93em;">{content}</p></div>')
+        elif sec.startswith("### 适合人群"):
+            content = sec.replace("### 适合人群", "").strip()
+            html_parts.append(f'<div class="section"><h3>🎯 适合人群</h3><ul>{_md_list_to_html(content)}</ul></div>')
+        elif sec.startswith("### 思维发散"):
+            content = sec.replace("### 思维发散", "").strip()
+            html_parts.append(f'<div class="section"><h3>💡 思维发散</h3><ul>{_md_list_to_html(content)}</ul></div>')
+        elif sec.startswith("### 锐评"):
+            content = sec.replace("### 锐评", "").strip()
+            pros_html, cons_html, verdict_text = _parse_critique(content)
+            html_parts.append(f'''<div class="section"><h3>⚔️ 锐评</h3>
+<div class="pros-cons">
+  <div class="pros"><h4>✅ 优点</h4><ul>{pros_html}</ul></div>
+  <div class="cons"><h4>❌ 缺点</h4><ul>{cons_html}</ul></div>
+</div>
+<div class="verdict">💬 {verdict_text}</div></div>''')
+        else:
+            html_parts.append(f'<div class="section">{sec}</div>')
+
+    return "\n".join(html_parts)
+
+
+def _md_list_to_html(text: str) -> str:
+    """把 markdown 列表转为 li 标签"""
+    items = []
+    for line in text.split("\n"):
+        stripped = line.strip()
+        if stripped.startswith("-"):
+            items.append(f"<li>{stripped[1:].strip()}</li>")
+        elif stripped and not stripped.startswith("#"):
+            items.append(f"<li>{stripped}</li>")
+    return "\n".join(items)
+
+
+def _parse_critique(text: str) -> tuple[str, str, str]:
+    """解析锐评中的优/缺点和总结句"""
+    pros_items = []
+    cons_items = []
+    verdict = ""
+    current = None
+
+    for line in text.split("\n"):
+        stripped = line.strip()
+        if stripped.startswith("优点") or stripped.startswith("**优点"):
+            current = "pros"
+            continue
+        elif stripped.startswith("缺点") or stripped.startswith("**缺点"):
+            current = "cons"
+            continue
+        elif stripped.startswith("总结") or stripped.startswith("**总结"):
+            current = "verdict"
+            continue
+
+        if current == "pros" and stripped.startswith("-"):
+            pros_items.append(f"<li>{stripped[1:].strip()}</li>")
+        elif current == "cons" and stripped.startswith("-"):
+            cons_items.append(f"<li>{stripped[1:].strip()}</li>")
+        elif current == "verdict" and stripped:
+            verdict = stripped
+
+    return "\n".join(pros_items), "\n".join(cons_items), verdict
+
+
+def rank_class(rank: int) -> str:
+    if rank == 1: return "rank-1"
+    if rank == 2: return "rank-2"
+    if rank == 3: return "rank-3"
+    return "rank-other"
+
+
+LANG_COLORS = {
+    "Python": "#3572A5", "JavaScript": "#f1e05a", "TypeScript": "#3178c6",
+    "Go": "#00ADD8", "Rust": "#dea584", "Java": "#b07219",
+    "C++": "#f34b7d", "C": "#555555", "Ruby": "#701516",
+    "Swift": "#F05138", "Kotlin": "#A97BFF", "Zig": "#ec915c",
+}
+
+
+def lang_color(lang: str) -> str:
+    return LANG_COLORS.get(lang, "#8b949e")
+
+
+def generate_html(results: list[dict], date_str: str) -> str:
+    """生成完整的自包含 HTML 日报"""
+    cards_html = []
+    for i, result in enumerate(results, 1):
+        repo = result["repo"]
+        analysis = result.get("analysis") or "### 项目简介\n分析暂不可用\n\n### 锐评\n优点：\n- 暂无\n\n缺点：\n- 暂无\n\n总结：分析过程出现问题"
+
+        cards_html.append(f"""
+<div class="card">
+  <div class="card-header">
+    <span class="rank {rank_class(i)}">#{i}</span>
+    <span class="repo-name">
+      <a href="{repo['url']}" target="_blank">{repo['full_name']}</a>
+    </span>
+    <div class="meta">
+      <span><span class="lang-dot" style="background:{lang_color(repo['language'])}"></span> {repo['language']}</span>
+      <span>⭐ {repo['today_stars']}</span>
+    </div>
+  </div>
+  <div class="desc">{repo['description'] or '（无描述）'}</div>
+  {format_analysis_html(analysis)}
+</div>""")
+
+    html = f"""<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GitHub Trending 日报 — {date_str}</title>
+{HTML_CSS}
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>🔥 GitHub Trending 日报</h1>
+    <div class="date">{date_str}</div>
+    <div class="summary">
+      本日报由 AI 自动生成，每日精选 GitHub Trending Top 10 项目进行深度解读，
+      涵盖项目简介、适合人群、创新思维发散与犀利锐评，助你快速把握技术脉搏。
+    </div>
+  </div>
+  {''.join(cards_html)}
+  <div class="footer">
+    数据来源：<a href="https://github.com/trending" target="_blank">GitHub Trending</a> ·
+    分析引擎：DeepSeek AI · 生成时间：{datetime.now().strftime('%Y-%m-%d %H:%M')}
+  </div>
+</div>
+</body>
+</html>"""
+    return html
+
+
+def send_feishu_notification(webhook_url: str, html_path: str, date_str: str, count: int):
+    """向飞书 Webhook 发送日报已生成的通知"""
+    if not webhook_url:
+        log.warning("未配置飞书 Webhook URL，跳过通知")
+        return
+
+    message = {
+        "msg_type": "interactive",
+        "card": {
+            "header": {
+                "title": {"tag": "plain_text", "content": "📊 GitHub Trending 日报已生成"},
+                "template": "blue"
+            },
+            "elements": [
+                {
+                    "tag": "div",
+                    "text": {
+                        "tag": "lark_md",
+                        "content": f"**日期：{date_str}**\n已分析 {count} 个热门项目\n\n日报已保存至本地，请打开浏览器查看完整内容。"
+                    }
+                },
+                {
+                    "tag": "hr"
+                },
+                {
+                    "tag": "note",
+                    "elements": [{"tag": "plain_text", "content": "🤖 由 AI 自动生成 · DeepSeek 驱动"}]
+                }
+            ]
+        }
+    }
+
+    try:
+        resp = httpx.post(webhook_url, json=message, timeout=15)
+        resp.raise_for_status()
+        log.info("飞书通知发送成功")
+    except Exception as e:
+        log.error(f"飞书通知发送失败: {e}")
+
+
+def open_in_browser(html_path: str):
+    """在默认浏览器中打开 HTML 文件"""
+    try:
+        subprocess.run(["open", html_path], check=True)
+        log.info(f"已在浏览器中打开: {html_path}")
+    except Exception as e:
+        log.error(f"无法打开浏览器: {e}")
+
+
+def get_client() -> OpenAI:
+    api_key = os.getenv("DEEPSEEK_API_KEY")
+    if not api_key:
+        log.error("未设置 DEEPSEEK_API_KEY 环境变量")
+        sys.exit(1)
+    base_url = os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
+    return OpenAI(api_key=api_key, base_url=base_url)
+
+
+def main():
+    log.info("=== GitHub Trending 日报生成开始 ===")
+
+    # 1. 抓取
+    repos = fetch_trending()
+    if not repos:
+        log.error("未获取到任何项目，退出")
+        sys.exit(1)
+
+    # 2. 分析
+    client = get_client()
+    model = os.getenv("DEEPSEEK_MODEL", "deepseek-chat")
+    results = analyze_all(client, repos, model)
+
+    # 3. 生成 HTML
+    today = datetime.now().strftime("%Y-%m-%d")
+    output_dir = Path.home() / "GitHub日报"
+    output_dir.mkdir(parents=True, exist_ok=True)
+    html_path = output_dir / f"{today}.html"
+
+    html_content = generate_html(results, today)
+    html_path.write_text(html_content, encoding="utf-8")
+    log.info(f"日报已保存: {html_path}")
+
+    # 4. 飞书通知
+    webhook_url = os.getenv("FEISHU_WEBHOOK_URL", "")
+    send_feishu_notification(webhook_url, str(html_path), today, len(results))
+
+    # 5. 打开浏览器
+    open_browser = os.getenv("OPEN_BROWSER", "true").lower() == "true"
+    if open_browser:
+        open_in_browser(str(html_path))
+
+    log.info("=== GitHub Trending 日报生成完成 ===")
+
+
+if __name__ == "__main__":
+    main()
