@@ -1,3 +1,5 @@
+from html import unescape
+
 import httpx
 from bs4 import BeautifulSoup
 import re
@@ -30,8 +32,12 @@ HEADERS = {
 def fetch_trending() -> list[dict]:
     """抓取 GitHub Trending 页面，返回 Top 10 项目列表"""
     log.info("正在抓取 GitHub Trending...")
-    resp = httpx.get(TRENDING_URL, headers=HEADERS, follow_redirects=True, timeout=30)
-    resp.raise_for_status()
+    try:
+        resp = httpx.get(TRENDING_URL, headers=HEADERS, follow_redirects=True, timeout=30)
+        resp.raise_for_status()
+    except httpx.HTTPError as e:
+        log.error(f"GitHub Trending 请求失败: {e}")
+        return []
     soup = BeautifulSoup(resp.text, "html.parser")
 
     repos = []
@@ -50,7 +56,7 @@ def fetch_trending() -> list[dict]:
 
         # 描述
         desc_p = article.find("p", class_="col-9")
-        description = desc_p.text.strip() if desc_p else ""
+        description = unescape(desc_p.text.strip()) if desc_p else ""
 
         # 语言
         lang_el = article.find("span", itemprop="programmingLanguage")
