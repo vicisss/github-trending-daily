@@ -1,4 +1,4 @@
-from html import unescape
+from html import escape, unescape
 
 import httpx
 from bs4 import BeautifulSoup
@@ -233,6 +233,7 @@ HTML_CSS = """<style>
 
 def format_analysis_html(analysis: str) -> str:
     """把 AI 返回的 markdown 分析转为 HTML"""
+    analysis = escape(analysis)
     sections = re.split(r'(?=### )', analysis.strip())
     html_parts = []
     verdict_text = ""
@@ -282,16 +283,34 @@ def _parse_critique(text: str) -> tuple[str, str, str]:
     verdict = ""
     current = None
 
+    def _extract_remainder(line: str) -> str:
+        """Extract content after colon in a header line like 优点：xxx"""
+        for sep in ("：", ":"):
+            if sep in line:
+                remainder = line.split(sep, 1)[1].strip()
+                if remainder:
+                    return remainder
+        return ""
+
     for line in text.split("\n"):
         stripped = line.strip()
         if stripped.startswith("优点") or stripped.startswith("**优点"):
             current = "pros"
+            remainder = _extract_remainder(stripped)
+            if remainder:
+                pros_items.append(f"<li>{remainder}</li>")
             continue
         elif stripped.startswith("缺点") or stripped.startswith("**缺点"):
             current = "cons"
+            remainder = _extract_remainder(stripped)
+            if remainder:
+                cons_items.append(f"<li>{remainder}</li>")
             continue
         elif stripped.startswith("总结") or stripped.startswith("**总结"):
             current = "verdict"
+            remainder = _extract_remainder(stripped)
+            if remainder:
+                verdict = remainder
             continue
 
         if current == "pros" and stripped.startswith("-"):
@@ -299,7 +318,7 @@ def _parse_critique(text: str) -> tuple[str, str, str]:
         elif current == "cons" and stripped.startswith("-"):
             cons_items.append(f"<li>{stripped[1:].strip()}</li>")
         elif current == "verdict" and stripped:
-            verdict = stripped
+            verdict = verdict + stripped if verdict else stripped
 
     return "\n".join(pros_items), "\n".join(cons_items), verdict
 
@@ -329,20 +348,25 @@ def generate_html(results: list[dict], date_str: str) -> str:
     for i, result in enumerate(results, 1):
         repo = result["repo"]
         analysis = result.get("analysis") or "### 项目简介\n分析暂不可用\n\n### 锐评\n优点：\n- 暂无\n\n缺点：\n- 暂无\n\n总结：分析过程出现问题"
+        repo_name = escape(repo["full_name"])
+        repo_url = escape(repo["url"], quote=True)
+        repo_desc = escape(repo["description"]) if repo["description"] else "（无描述）"
+        repo_lang = escape(repo["language"])
+        repo_stars = escape(repo["today_stars"])
 
         cards_html.append(f"""
 <div class="card">
   <div class="card-header">
     <span class="rank {rank_class(i)}">#{i}</span>
     <span class="repo-name">
-      <a href="{repo['url']}" target="_blank">{repo['full_name']}</a>
+      <a href="{repo_url}" target="_blank">{repo_name}</a>
     </span>
     <div class="meta">
-      <span><span class="lang-dot" style="background:{lang_color(repo['language'])}"></span> {repo['language']}</span>
-      <span>⭐ {repo['today_stars']}</span>
+      <span><span class="lang-dot" style="background:{lang_color(repo['language'])}"></span> {repo_lang}</span>
+      <span>⭐ {repo_stars}</span>
     </div>
   </div>
-  <div class="desc">{repo['description'] or '（无描述）'}</div>
+  <div class="desc">{repo_desc}</div>
   {format_analysis_html(analysis)}
 </div>""")
 
@@ -429,7 +453,7 @@ def get_client() -> OpenAI:
     if not api_key:
         log.error("未设置 DEEPSEEK_API_KEY 环境变量")
         sys.exit(1)
-    base_url = os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
+    base_url = os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com/v1")
     return OpenAI(api_key=api_key, base_url=base_url)
 
 
@@ -450,20 +474,23 @@ def main():
     # 3. 生成 HTML
     today = datetime.now().strftime("%Y-%m-%d")
     output_dir = Path.home() / "GitHub日报"
-    output_dir.mkdir(parents=True, exist_ok=True)
-    html_path = output_dir / f"{today}.html"
-
-    html_content = generate_html(results, today)
-    html_path.write_text(html_content, encoding="utf-8")
-    log.info(f"日报已保存: {html_path}")
+    try:
+        output_dir.mkdir(parents=True, exist_ok=True)
+        html_path = output_dir / f"{today}.html"
+        html_content = generate_html(results, today)
+        html_path.write_text(html_content, encoding="utf-8")
+        log.info(f"日报已保存: {html_path}")
+    except OSError as e:
+        log.error(f"无法写入日报文件: {e}")
+        sys.exit(1)
 
     # 4. 飞书通知
     webhook_url = os.getenv("FEISHU_WEBHOOK_URL", "")
     send_feishu_notification(webhook_url, str(html_path), today, len(results))
 
     # 5. 打开浏览器
-    open_browser = os.getenv("OPEN_BROWSER", "true").lower() == "true"
-    if open_browser:
+    should_open = os.getenv("OPEN_BROWSER", "true").lower() == "true"
+    if should_open:
         open_in_browser(str(html_path))
 
     log.info("=== GitHub Trending 日报生成完成 ===")
