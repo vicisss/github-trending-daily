@@ -20,7 +20,7 @@
         <key>DEEPSEEK_MODEL</key>
         <string>deepseek-chat</string>
         <key>FEISHU_WEBHOOK_URL</key>
-        <string></string>
+        <string>https://open.feishu.cn/open-apis/bot/v2/hook/96e9b704-76bd-4be5-aa56-9fb940e5792f</string>
     </dict>
 
     <key>WorkingDirectory</key>
