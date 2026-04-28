@@ -120,7 +120,7 @@ def build_analysis_prompt(repo: dict) -> str:
 
 
 def analyze_repo(client: OpenAI, repo: dict, model: str) -> dict:
-    """调用 DeepSeek API 深度分析单个项目，返回分析结果（失败返回 None）"""
+    """调用 DeepSeek API 深度分析单个项目；失败时 analysis 为 None 且 error 字段带错误信息"""
     log.info(f"正在分析: {repo['full_name']} ...")
     try:
         resp = client.chat.completions.create(
@@ -133,7 +133,12 @@ def analyze_repo(client: OpenAI, repo: dict, model: str) -> dict:
             max_tokens=4096,
         )
         content = resp.choices[0].message.content
-        log.info(f"分析完成: {repo['full_name']} (tokens: {resp.usage.total_tokens})")
+        if not content:
+            log.warning(f"API 返回空内容: {repo['full_name']}")
+            return {"repo": repo, "analysis": None, "error": "API returned empty content"}
+        usage = getattr(resp, "usage", None)
+        token_str = f"tokens: {usage.total_tokens}" if usage else "tokens: N/A"
+        log.info(f"分析完成: {repo['full_name']} ({token_str})")
         return {"repo": repo, "analysis": content, "error": None}
     except Exception as e:
         log.error(f"分析失败: {repo['full_name']} — {e}")
