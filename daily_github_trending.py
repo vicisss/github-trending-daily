@@ -456,12 +456,39 @@ def generate_html(results: list[dict], date_str: str) -> str:
     return html
 
 
-def send_feishu_notification(webhook_url: str, html_path: str, date_str: str, count: int):
+PUBLIC_BASE_URL = "https://vicisss.github.io/github-trending-daily"
+
+
+def publish_to_github_pages(output_dir: Path, today: str) -> str:
+    """将 HTML 推送到 GitHub Pages，返回公开访问 URL"""
+    public_url = f"{PUBLIC_BASE_URL}/{today}.html"
+    try:
+        subprocess.run(
+            ["git", "-C", str(output_dir), "add", f"{today}.html"],
+            check=True, capture_output=True, text=True,
+        )
+        subprocess.run(
+            ["git", "-C", str(output_dir), "commit", "-m", f"add: {today} 日报"],
+            check=True, capture_output=True, text=True,
+        )
+        subprocess.run(
+            ["git", "-C", str(output_dir), "push", "origin", "main"],
+            check=True, capture_output=True, text=True, timeout=30,
+        )
+        log.info(f"已发布到 GitHub Pages: {public_url}")
+        return public_url
+    except subprocess.CalledProcessError as e:
+        log.error(f"GitHub Pages 发布失败: {e.stderr}")
+        return ""
+
+
+def send_feishu_notification(webhook_url: str, public_url: str, date_str: str, count: int):
     """向飞书 Webhook 发送日报已生成的通知"""
     if not webhook_url:
         log.warning("未配置飞书 Webhook URL，跳过通知")
         return
 
+    url_md = f"[📖 打开日报]({public_url})" if public_url else "日报已保存至本地"
     message = {
         "msg_type": "interactive",
         "card": {
@@ -474,7 +501,7 @@ def send_feishu_notification(webhook_url: str, html_path: str, date_str: str, co
                     "tag": "div",
                     "text": {
                         "tag": "lark_md",
-                        "content": f"**日期：{date_str}**\n已分析 {count} 个热门项目\n\n日报已保存至本地，请打开浏览器查看完整内容。"
+                        "content": f"**日期：{date_str}**\n已分析 {count} 个热门项目\n\n{url_md}"
                     }
                 },
                 {
@@ -541,11 +568,14 @@ def main():
         log.error(f"无法写入日报文件: {e}")
         sys.exit(1)
 
-    # 4. 飞书通知
-    webhook_url = os.getenv("FEISHU_WEBHOOK_URL", "")
-    send_feishu_notification(webhook_url, str(html_path), today, len(results))
+    # 4. 发布到 GitHub Pages
+    public_url = publish_to_github_pages(output_dir, today)
 
-    # 5. 打开浏览器
+    # 5. 飞书通知
+    webhook_url = os.getenv("FEISHU_WEBHOOK_URL", "")
+    send_feishu_notification(webhook_url, public_url, today, len(results))
+
+    # 6. 打开浏览器
     should_open = os.getenv("OPEN_BROWSER", "true").lower() == "true"
     if should_open:
         open_in_browser(str(html_path))
