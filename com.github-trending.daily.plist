@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.github-trending.daily</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/bin/python3</string>
+        <string>/Users/Zhuanz/Desktop/我的电脑/D盘/claudecode/GitHub日报/daily_github_trending.py</string>
+    </array>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>DEEPSEEK_API_KEY</key>
+        <string>sk-b8cca2f448d74a33914f17257f73a749</string>
+        <key>DEEPSEEK_MODEL</key>
+        <string>deepseek-chat</string>
+        <key>FEISHU_WEBHOOK_URL</key>
+        <string>https://open.feishu.cn/open-apis/bot/v2/hook/9e550292-a145-4de0-9b1b-96361e4bbda3</string>
+    </dict>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/Zhuanz/Desktop/我的电脑/D盘/claudecode/GitHub日报</string>
+
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>9</integer>
+        <key>Minute</key>
+        <integer>0</integer>
+    </dict>
+
+    <key>StandardOutPath</key>
+    <string>/tmp/github-trending-daily.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/tmp/github-trending-daily.err</string>
+
+    <key>RunAtLoad</key>
+    <false/>
+</dict>
+</plist>
