@@ -8,9 +8,8 @@
 
     <key>ProgramArguments</key>
     <array>
-        <string>/usr/bin/env</string>
-        <string>python3</string>
-        <string>/Users/Zhuanz/Desktop/我的电脑/D盘/claudecode/工具/daily_github_trending.py</string>
+        <string>/usr/bin/python3</string>
+        <string>/Users/Zhuanz/github-trending-daily/daily_github_trending.py</string>
     </array>
 
     <key>EnvironmentVariables</key>
@@ -24,7 +23,7 @@
     </dict>
 
     <key>WorkingDirectory</key>
-    <string>/Users/Zhuanz/Desktop/我的电脑/D盘/claudecode/工具</string>
+    <string>/Users/Zhuanz/github-trending-daily</string>
 
     <key>StartCalendarInterval</key>
     <dict>

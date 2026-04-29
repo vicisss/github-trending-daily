@@ -158,7 +158,7 @@ def analyze_all(client: OpenAI, repos: list[dict], model: str) -> list[dict]:
 HTML_CSS = """<style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
-    background: #0d1117; color: #c9d1d9; font-family: -apple-system, BlinkMacSystemFont,
+    background: #ffffff; color: #24292f; font-family: -apple-system, BlinkMacSystemFont,
       'Segoe UI', 'Noto Sans SC', 'PingFang SC', sans-serif;
     line-height: 1.7;
   }
@@ -166,25 +166,25 @@ HTML_CSS = """<style>
   .container { max-width: 900px; margin: 0 auto; }
   .header {
     text-align: center; padding: 60px 0 40px;
-    border-bottom: 1px solid #21262d; margin-bottom: 48px;
+    border-bottom: 1px solid #d0d7de; margin-bottom: 48px;
   }
   .header h1 {
-    font-size: 2.2em; background: linear-gradient(135deg, #58a6ff, #bc8cff);
+    font-size: 2.2em; background: linear-gradient(135deg, #0969da, #8250df);
     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     background-clip: text;
   }
-  .header .date { color: #8b949e; margin-top: 8px; font-size: 1.05em; }
+  .header .date { color: #656d76; margin-top: 8px; font-size: 1.05em; }
   .header .summary {
-    margin-top: 20px; padding: 16px 24px; background: #161b22;
-    border-radius: 8px; border-left: 3px solid #58a6ff;
-    text-align: left; color: #8b949e; font-size: 0.95em;
+    margin-top: 20px; padding: 16px 24px; background: #f6f8fa;
+    border-radius: 8px; border-left: 3px solid #0969da;
+    text-align: left; color: #656d76; font-size: 0.95em;
   }
   .card {
-    background: #161b22; border: 1px solid #21262d; border-radius: 12px;
+    background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 12px;
     padding: 32px; margin-bottom: 28px;
-    transition: border-color 0.2s; scroll-margin-top: 24px;
+    transition: border-color 0.2s, box-shadow 0.2s; scroll-margin-top: 24px;
   }
-  .card:hover { border-color: #30363d; }
+  .card:hover { border-color: #0969da; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
   .card-header {
     display: flex; align-items: center; gap: 14px; margin-bottom: 18px;
     flex-wrap: wrap;
@@ -194,61 +194,61 @@ HTML_CSS = """<style>
     width: 36px; height: 36px; border-radius: 50%;
     font-weight: 700; font-size: 0.95em; flex-shrink: 0;
   }
-  .rank-1 { background: #f0c419; color: #0d1117; }
-  .rank-2 { background: #a3b4c2; color: #0d1117; }
-  .rank-3 { background: #cd7f32; color: #0d1117; }
-  .rank-other { background: #21262d; color: #8b949e; }
+  .rank-1 { background: #f0c419; color: #fff; }
+  .rank-2 { background: #a3b4c2; color: #fff; }
+  .rank-3 { background: #cd7f32; color: #fff; }
+  .rank-other { background: #eaeef2; color: #656d76; }
   .repo-name { font-size: 1.15em; font-weight: 600; }
-  .repo-name a { color: #58a6ff; text-decoration: none; }
+  .repo-name a { color: #0969da; text-decoration: none; }
   .repo-name a:hover { text-decoration: underline; }
-  .meta { display: flex; gap: 16px; flex-wrap: wrap; font-size: 0.85em; color: #8b949e; }
+  .meta { display: flex; gap: 16px; flex-wrap: wrap; font-size: 0.85em; color: #656d76; }
   .meta span { display: inline-flex; align-items: center; gap: 4px; }
   .lang-dot {
     display: inline-block; width: 10px; height: 10px; border-radius: 50%;
   }
-  .desc { color: #8b949e; font-size: 0.93em; margin-bottom: 20px; line-height: 1.6; }
+  .desc { color: #656d76; font-size: 0.93em; margin-bottom: 20px; line-height: 1.6; }
   .section { margin-top: 20px; }
-  .section h3 { font-size: 1em; margin-bottom: 10px; color: #e6edf3; }
-  .section ul { padding-left: 20px; color: #8b949e; font-size: 0.93em; }
+  .section h3 { font-size: 1em; margin-bottom: 10px; color: #24292f; }
+  .section ul { padding-left: 20px; color: #24292f; font-size: 0.93em; }
   .section ul li { margin-bottom: 6px; }
   .pros-cons { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-  .pros { background: #0d2b1e; border-radius: 8px; padding: 16px; }
-  .cons { background: #2b0d0d; border-radius: 8px; padding: 16px; }
-  .pros h4 { color: #3fb950; font-size: 0.93em; margin-bottom: 8px; }
-  .cons h4 { color: #f85149; font-size: 0.93em; margin-bottom: 8px; }
-  .pros ul, .cons ul { color: #c9d1d9; font-size: 0.9em; }
-  .verdict { margin-top: 16px; padding: 12px 16px; background: #1a1a2e;
-    border-radius: 6px; font-style: italic; color: #bc8cff; font-size: 0.93em; }
+  .pros { background: #dafbe1; border-radius: 8px; padding: 16px; }
+  .cons { background: #ffebe9; border-radius: 8px; padding: 16px; }
+  .pros h4 { color: #1a7f37; font-size: 0.93em; margin-bottom: 8px; }
+  .cons h4 { color: #cf222e; font-size: 0.93em; margin-bottom: 8px; }
+  .pros ul, .cons ul { color: #24292f; font-size: 0.9em; }
+  .verdict { margin-top: 16px; padding: 12px 16px; background: #f3e8ff;
+    border-radius: 6px; font-style: italic; color: #8250df; font-size: 0.93em; }
   .footer {
-    text-align: center; padding: 40px 0; color: #484f58; font-size: 0.85em;
-    border-top: 1px solid #21262d; margin-top: 20px;
+    text-align: center; padding: 40px 0; color: #656d76; font-size: 0.85em;
+    border-top: 1px solid #d0d7de; margin-top: 20px;
   }
-  .footer a { color: #58a6ff; }
+  .footer a { color: #0969da; }
 
   /* 左侧目录 */
   #sidebar {
     position: fixed; left: 0; top: 0; width: 250px; height: 100vh;
-    background: #0d1117; border-right: 1px solid #21262d;
+    background: #f6f8fa; border-right: 1px solid #d0d7de;
     overflow-y: auto; padding: 24px 0; z-index: 100;
   }
   #sidebar .toc-title {
     padding: 0 20px 16px; font-size: 0.85em; font-weight: 700;
-    color: #8b949e; text-transform: uppercase; letter-spacing: 0.05em;
-    border-bottom: 1px solid #21262d; margin-bottom: 8px;
+    color: #656d76; text-transform: uppercase; letter-spacing: 0.05em;
+    border-bottom: 1px solid #d0d7de; margin-bottom: 8px;
   }
   #sidebar a {
-    display: block; padding: 8px 20px; color: #8b949e;
+    display: block; padding: 8px 20px; color: #656d76;
     text-decoration: none; font-size: 0.87em;
     border-left: 2px solid transparent; transition: all 0.15s;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
-  #sidebar a:hover { color: #e6edf3; background: #161b22; }
+  #sidebar a:hover { color: #24292f; background: #eaeef2; }
   #sidebar a.active {
-    color: #58a6ff; background: #161b22;
-    border-left-color: #58a6ff;
+    color: #0969da; background: #eaeef2;
+    border-left-color: #0969da;
   }
   #sidebar a .toc-rank {
-    display: inline-block; width: 22px; font-weight: 600; color: #58a6ff;
+    display: inline-block; width: 22px; font-weight: 600; color: #0969da;
   }
 
   @media (max-width: 768px) {
