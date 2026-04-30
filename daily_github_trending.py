@@ -272,7 +272,7 @@ def format_analysis_html(analysis: str) -> str:
         sec = sec.strip()
         if sec.startswith("### 项目简介"):
             content = sec.replace("### 项目简介", "").strip()
-            html_parts.append(f'<div class="section"><h3>📖 项目简介</h3><p style="color:#8b949e;font-size:0.93em;">{content}</p></div>')
+            html_parts.append(f'<div class="section"><h3>📖 项目简介</h3><p style="color:#8b949e;font-size:0.93em;">{_inline_md_to_html(content)}</p></div>')
         elif sec.startswith("### 适合人群"):
             content = sec.replace("### 适合人群", "").strip()
             html_parts.append(f'<div class="section"><h3>🎯 适合人群</h3><ul>{_md_list_to_html(content)}</ul></div>')
@@ -287,7 +287,7 @@ def format_analysis_html(analysis: str) -> str:
   <div class="pros"><h4>✅ 优点</h4><ul>{pros_html}</ul></div>
   <div class="cons"><h4>❌ 缺点</h4><ul>{cons_html}</ul></div>
 </div>
-<div class="verdict">💬 {verdict_text}</div></div>''')
+<div class="verdict">💬 {_inline_md_to_html(verdict_text)}</div></div>''')
         else:
             html_parts.append(f'<div class="section">{sec}</div>')
 
@@ -300,10 +300,18 @@ def _md_list_to_html(text: str) -> str:
     for line in text.split("\n"):
         stripped = line.strip()
         if stripped.startswith("-"):
-            items.append(f"<li>{stripped[1:].strip()}</li>")
+            items.append(f"<li>{_inline_md_to_html(stripped[1:].strip())}</li>")
         elif stripped and not stripped.startswith("#"):
-            items.append(f"<li>{stripped}</li>")
+            items.append(f"<li>{_inline_md_to_html(stripped)}</li>")
     return "\n".join(items)
+
+
+def _inline_md_to_html(text: str) -> str:
+    """转换行内 markdown 格式为 HTML：**加粗**、*斜体*、`代码`"""
+    text = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', text)
+    text = re.sub(r'\*(.+?)\*', r'<em>\1</em>', text)
+    text = re.sub(r'`([^`]+)`', r'<code>\1</code>', text)
+    return text
 
 
 def _parse_critique(text: str) -> tuple[str, str, str]:
@@ -328,29 +336,29 @@ def _parse_critique(text: str) -> tuple[str, str, str]:
             current = "pros"
             remainder = _extract_remainder(stripped)
             if remainder:
-                pros_items.append(f"<li>{remainder}</li>")
+                pros_items.append(f"<li>{_inline_md_to_html(remainder)}</li>")
             continue
         elif stripped.startswith("缺点") or stripped.startswith("**缺点"):
             current = "cons"
             remainder = _extract_remainder(stripped)
             if remainder:
-                cons_items.append(f"<li>{remainder}</li>")
+                cons_items.append(f"<li>{_inline_md_to_html(remainder)}</li>")
             continue
         elif stripped.startswith("总结") or stripped.startswith("**总结"):
             current = "verdict"
             remainder = _extract_remainder(stripped)
             if remainder:
-                verdict = remainder
+                verdict = _inline_md_to_html(remainder)
             continue
 
         if current == "pros" and stripped.startswith("-"):
-            pros_items.append(f"<li>{stripped[1:].strip()}</li>")
+            pros_items.append(f"<li>{_inline_md_to_html(stripped[1:].strip())}</li>")
         elif current == "cons" and stripped.startswith("-"):
-            cons_items.append(f"<li>{stripped[1:].strip()}</li>")
+            cons_items.append(f"<li>{_inline_md_to_html(stripped[1:].strip())}</li>")
         elif current == "verdict" and stripped:
             verdict = verdict + stripped if verdict else stripped
 
-    return "\n".join(pros_items), "\n".join(cons_items), verdict
+    return "\n".join(pros_items), "\n".join(cons_items), _inline_md_to_html(verdict)
 
 
 def rank_class(rank: int) -> str:
