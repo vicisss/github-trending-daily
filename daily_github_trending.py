@@ -311,6 +311,9 @@ def _inline_md_to_html(text: str) -> str:
     text = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', text)
     text = re.sub(r'\*(.+?)\*', r'<em>\1</em>', text)
     text = re.sub(r'`([^`]+)`', r'<code>\1</code>', text)
+    # 清理落单的 ** 和 * 标记
+    text = text.replace('**', '')
+    text = re.sub(r'(?<!\w)\*(?!\w)', '', text)
     return text
 
 
