@@ -850,7 +850,7 @@ def main():
 
     # 5. 生成 HTML
     today = datetime.now().strftime("%Y-%m-%d")
-    output_dir = Path(__file__).resolve().parent
+    output_dir = Path(os.getenv("OUTPUT_DIR", str(Path.home() / "Desktop/我的电脑/D盘/claudecode/GitHub日报")))
     try:
         output_dir.mkdir(parents=True, exist_ok=True)
         html_path = output_dir / f"{today}.html"
