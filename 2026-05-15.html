@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GitHub Trending 日报 — 2026-05-15</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #ffffff; color: #24292f; font-family: -apple-system, BlinkMacSystemFont,
+      'Segoe UI', 'Noto Sans SC', 'PingFang SC', sans-serif;
+    line-height: 1.7;
+  }
+  .main-content { margin-left: 260px; padding: 40px 20px; }
+  .container { max-width: 900px; margin: 0 auto; }
+  .header {
+    text-align: center; padding: 60px 0 40px;
+    border-bottom: 1px solid #d0d7de; margin-bottom: 48px;
+  }
+  .header h1 {
+    font-size: 2.2em; background: linear-gradient(135deg, #0969da, #8250df);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .header .date { color: #656d76; margin-top: 8px; font-size: 1.05em; }
+  .header .summary {
+    margin-top: 20px; padding: 16px 24px; background: #f6f8fa;
+    border-radius: 8px; border-left: 3px solid #0969da;
+    text-align: left; color: #656d76; font-size: 0.95em;
+  }
+  .card {
+    background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 12px;
+    padding: 32px; margin-bottom: 28px;
+    transition: border-color 0.2s, box-shadow 0.2s; scroll-margin-top: 24px;
+  }
+  .card:hover { border-color: #0969da; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .card-header {
+    display: flex; align-items: center; gap: 14px; margin-bottom: 18px;
+    flex-wrap: wrap;
+  }
+  .rank {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 36px; height: 36px; border-radius: 50%;
+    font-weight: 700; font-size: 0.95em; flex-shrink: 0;
+  }
+  .rank-1 { background: #f0c419; color: #fff; }
+  .rank-2 { background: #a3b4c2; color: #fff; }
+  .rank-3 { background: #cd7f32; color: #fff; }
+  .rank-other { background: #eaeef2; color: #656d76; }
+  .repo-name { font-size: 1.15em; font-weight: 600; }
+  .repo-name a { color: #0969da; text-decoration: none; }
+  .repo-name a:hover { text-decoration: underline; }
+  .meta { display: flex; gap: 16px; flex-wrap: wrap; font-size: 0.85em; color: #656d76; }
+  .meta span { display: inline-flex; align-items: center; gap: 4px; }
+  .lang-dot {
+    display: inline-block; width: 10px; height: 10px; border-radius: 50%;
+  }
+  .desc { color: #656d76; font-size: 0.93em; margin-bottom: 20px; line-height: 1.6; }
+  .section { margin-top: 20px; }
+  .section h3 { font-size: 1em; margin-bottom: 10px; color: #24292f; }
+  .section ul { padding-left: 20px; color: #24292f; font-size: 0.93em; }
+  .section ul li { margin-bottom: 6px; }
+  .pros-cons { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .pros { background: #dafbe1; border-radius: 8px; padding: 16px; }
+  .cons { background: #ffebe9; border-radius: 8px; padding: 16px; }
+  .pros h4 { color: #1a7f37; font-size: 0.93em; margin-bottom: 8px; }
+  .cons h4 { color: #cf222e; font-size: 0.93em; margin-bottom: 8px; }
+  .pros ul, .cons ul { color: #24292f; font-size: 0.9em; }
+  .verdict { margin-top: 16px; padding: 12px 16px; background: #f3e8ff;
+    border-radius: 6px; font-style: italic; color: #8250df; font-size: 0.93em; }
+  .footer {
+    text-align: center; padding: 40px 0; color: #656d76; font-size: 0.85em;
+    border-top: 1px solid #d0d7de; margin-top: 20px;
+  }
+  .footer a { color: #0969da; }
+
+  /* 左侧目录 */
+  #sidebar {
+    position: fixed; left: 0; top: 0; width: 250px; height: 100vh;
+    background: #f6f8fa; border-right: 1px solid #d0d7de;
+    overflow-y: auto; padding: 24px 0; z-index: 100;
+  }
+  #sidebar .toc-title {
+    padding: 0 20px 16px; font-size: 0.85em; font-weight: 700;
+    color: #656d76; text-transform: uppercase; letter-spacing: 0.05em;
+    border-bottom: 1px solid #d0d7de; margin-bottom: 8px;
+  }
+  #sidebar a {
+    display: block; padding: 8px 20px; color: #656d76;
+    text-decoration: none; font-size: 0.87em;
+    border-left: 2px solid transparent; transition: all 0.15s;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  #sidebar a:hover { color: #24292f; background: #eaeef2; }
+  #sidebar a.active {
+    color: #0969da; background: #eaeef2;
+    border-left-color: #0969da;
+  }
+  #sidebar a .toc-rank {
+    display: inline-block; width: 22px; font-weight: 600; color: #0969da;
+  }
+  #sidebar a .toc-dot-new {
+    display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+    background: #ff9800; margin-left: 4px; vertical-align: middle;
+  }
+
+  /* 技术风向总结 */
+  .trend-summary {
+    background: linear-gradient(135deg, #f6f8fa 0%, #e8f0fe 50%, #f6f8fa 100%);
+    background-size: 200% 200%;
+    animation: gradientShift 8s ease infinite;
+    border: 1px solid #d0d7de; border-radius: 12px;
+    padding: 28px 32px; margin-bottom: 40px;
+    border-left: 4px solid #0969da;
+  }
+  .trend-summary h2 {
+    font-size: 1.15em; color: #0969da; margin-bottom: 12px;
+  }
+  .trend-summary p {
+    font-size: 0.95em; color: #24292f; line-height: 1.8;
+  }
+  @keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  /* 卡片入场动画 */
+  .card {
+    opacity: 0; transform: translateY(30px);
+    transition: opacity 0.5s ease, transform 0.5s ease, border-color 0.2s, box-shadow 0.2s;
+  }
+  .card.visible { opacity: 1; transform: translateY(0); }
+
+  /* NEW/STREAK 徽章 */
+  .badge-new {
+    display: inline-block; padding: 2px 10px; border-radius: 12px;
+    font-size: 0.75em; font-weight: 700; color: #fff; background: #2da44e;
+    animation: badgePulse 2s ease-in-out infinite;
+  }
+  .badge-streak {
+    display: inline-block; padding: 2px 10px; border-radius: 12px;
+    font-size: 0.75em; font-weight: 700; color: #fff; background: #8250df;
+  }
+  .badge-recurring {
+    display: inline-block; padding: 2px 10px; border-radius: 12px;
+    font-size: 0.75em; font-weight: 700; color: #656d76; background: #eaeef2;
+  }
+  @keyframes badgePulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(45, 164, 78, 0.4); }
+    50% { box-shadow: 0 0 0 6px rgba(45, 164, 78, 0); }
+  }
+
+  /* 评分进度条 */
+  .score-row { margin-bottom: 14px; }
+  .score-label { font-size: 0.9em; font-weight: 600; color: #24292f; margin-bottom: 4px; }
+  .score-num { font-weight: 700; color: #0969da; margin-left: 4px; }
+  .score-bar {
+    height: 8px; background: #eaeef2; border-radius: 4px; overflow: hidden;
+    margin-bottom: 2px;
+  }
+  .score-bar-fill {
+    height: 100%; border-radius: 4px;
+    transition: width 1s ease;
+  }
+  .score-reason {
+    font-size: 0.82em; color: #656d76;
+  }
+
+  /* 今日 Star 高亮 */
+  .today-stars-count {
+    font-weight: 700; color: #0969da; font-size: 0.9em;
+  }
+
+  @media (max-width: 768px) {
+    #sidebar { display: none; }
+    .main-content { margin-left: 0; padding: 20px 12px; }
+    .card { padding: 20px; }
+    .pros-cons { grid-template-columns: 1fr; }
+    .header h1 { font-size: 1.5em; }
+  }
+</style>
+</head>
+<body>
+<nav id="sidebar">
+  <div class="toc-title">📋 今日目录</div>
+      <a href="#card-1"><span class="toc-rank">#1</span>ruvnet/RuView<span class="toc-dot-new"></span></a>
+      <a href="#card-2"><span class="toc-rank">#2</span>tinyhumansai/openhuman<span class="toc-dot-new"></span></a>
+      <a href="#card-3"><span class="toc-rank">#3</span>rohitg00/agentmemory<span class="toc-dot-new"></span></a>
+      <a href="#card-4"><span class="toc-rank">#4</span>obra/superpowers<span class="toc-dot-new"></span></a>
+      <a href="#card-5"><span class="toc-rank">#5</span>K-Dense-AI/scientific-agent-skills<span class="toc-dot-new"></span></a>
+      <a href="#card-6"><span class="toc-rank">#6</span>shiyu-coder/Kronos<span class="toc-dot-new"></span></a>
+      <a href="#card-7"><span class="toc-rank">#7</span>roboflow/supervision<span class="toc-dot-new"></span></a>
+      <a href="#card-8"><span class="toc-rank">#8</span>influxdata/telegraf<span class="toc-dot-new"></span></a>
+      <a href="#card-9"><span class="toc-rank">#9</span>supertone-inc/supertonic<span class="toc-dot-new"></span></a>
+      <a href="#card-10"><span class="toc-rank">#10</span>Genymobile/scrcpy<span class="toc-dot-new"></span></a>
+</nav>
+<div class="main-content">
+<div class="container">
+  <div class="header">
+    <h1>🔥 GitHub Trending 日报</h1>
+    <div class="date">2026-05-15</div>
+    <div class="summary">
+      本日报由 AI 自动生成，每日精选 GitHub Trending Top 10 项目进行深度解读，
+      涵盖项目简介、适合人群、PM推荐评估、思维发散与犀利锐评，助你快速把握技术脉搏。
+    </div>
+  </div>
+  <div class="trend-summary">
+    <h2>🌊 今日技术风向</h2>
+    <p>今日技术风向集中在“去中心化智能”与“专业垂直化”两大方向。最值得关注的热点是利用现有基础设施（如WiFi信号）实现无感传感，以及将AI代理从对话工具转变为能执行具体任务的“数字员工”，这标志着AI正从通用对话向可落地的技能模块演进。新兴变化体现在金融、科研、TTS等垂直领域出现了专门化的基础模型和工具链，表明通用大模型正被更精准、更私有的本地化解决方案所补充。对产品经理和决策者的建议是：优先评估将AI与现有硬件或数据管道结合的可能性，并关注那些能解决“脏活累活”的模块化工具，它们能显著降低开发成本；同时，在隐私敏感或需要低延迟的场景中，应果断投向本地化、私有化的技术方案。</p>
+  </div>
+  
+<div class="card" id="card-1">
+  <div class="card-header">
+    <span class="rank rank-1">#1</span>
+    <span class="repo-name">
+      <a href="https://github.com/ruvnet/RuView" target="_blank">ruvnet/RuView</a>
+      <span class="badge-new">NEW</span>
+    </span>
+    <div class="meta">
+      <span><span class="lang-dot" style="background:#dea584"></span> Rust</span>
+      <span class="today-stars-count" data-count="1715">⭐ 1,715 stars today</span>
+    </div>
+  </div>
+  <div class="desc">π RuView turns commodity WiFi signals into real-time spatial intelligence, vital sign monitoring, and presence detection — all without a single pixel of video.</div>
+  <div class="section"></div>
+<div class="section"><h3>📖 项目简介</h3><p style="color:#8b949e;font-size:0.93em;">RuView 是一个基于 Rust 构建的创新型感知系统，它通过分析普通的 WiFi 信号波动（CSI，信道状态信息），实现对空间内人体位置、生命体征（呼吸、心跳）以及存在状态的实时监测——全程无需任何摄像头或可穿戴设备。核心价值在于将无处不在的 WiFi 基础设施转化为“无感”的传感网络，解决传统视觉监控的隐私痛点与可穿戴设备的佩戴不适问题。</p></div>
+<div class="section"><h3>🎯 适合人群</h3><ul><li>产品经理：正在寻找“隐私优先”的智能家居、健康监测或安防解决方案</li>
+<li>智能硬件/物联网技术决策者：评估 WiFi 感知技术替代或补充现有传感器（如毫米波雷达、红外）的可行性</li>
+<li>养老/医疗科技从业者：需要非接触式、低成本的老人跌倒检测或婴幼儿呼吸监测方案</li>
+<li>隐私安全合规专家：对无摄像头监控方案有刚性需求的场景（如厕所、更衣室、病房）</li>
+<li>Rust 技术爱好者：对信号处理、实时系统在 Rust 中的实现感兴趣</li></ul></div>
+<div class="section"><h3>💡 思维发散</h3><ul><li><strong>隐私友好的“静默”安防产品</strong>：开发一款面向高端公寓/办公区的“隐形安防系统”，利用现有路由器即可实现入侵检测、人群计数和异常行为（如长时间静止）预警。<strong>商业化价值</strong>：相比摄像头方案，可切入对隐私敏感的 B 端市场（如政府、金融、高净值住宅），定价可溢价 30-50%。<strong>竞品</strong>：现有毫米波雷达方案（如谷歌 Soli）成本高、需专用硬件；RuView 利用现有 WiFi 硬件，部署成本几乎为零。</li>
+<li><strong>睡眠健康 SaaS 服务</strong>：将 RuView 封装为“非接触睡眠监测”订阅服务。用户无需购买专用床垫或手环，只需家中 WiFi 即可获得睡眠时长、呼吸频率、翻身次数等数据，并通过 App 生成报告。<strong>商业化价值</strong>：C 端订阅制（月费 9.9-19.9 元），痛点明确（失眠人群、婴儿父母）。<strong>差距</strong>：与 Apple Watch 或 Fitbit 比，准确度可能稍逊，但零佩戴感和零耗材是巨大优势。</li>
+<li><strong>智慧养老“无感跌倒报警器”</strong>：针对养老院或独居老人，整合 RuView 到现有的路由器固件中，实现 24 小时无接触监护。检测到跌倒或呼吸异常立即推送警报给家属或护工。<strong>商业化价值</strong>：B 端高利润（单套系统可卖 2000-5000 元），政策推动性强（多地要求养老机构配备智能监测设备）。<strong>技术组合</strong>：与 LoRa 或 NB-IoT 低功耗广域网结合，实现跨房间、跨楼层覆盖。</li>
+<li><strong>零售门店客流分析“黑匣子”</strong>：为线下门店提供无需摄像头的客流统计、热力图和停留时长分析。<strong>商业化价值</strong>：对中小商家极具吸引力（无隐私投诉风险、无需安装摄像头）。<strong>竞品差距</strong>：传统视觉方案（如海康威视）准确度高但成本高且易引发消费者顾虑；RuView 精度可能受环境干扰，但胜在“无感”。</li>
+<li><strong>元宇宙/虚拟现实的空间锚点</strong>：利用 RuView 将真实世界的人体位置实时映射到虚拟空间中，作为低成本的空间定位方案。<strong>商业化价值</strong>：面向 VR 线下体验馆或家用 VR 系统，大幅降低定位基站成本。<strong>技术组合</strong>：与 UWB 或 IMU 融合，提升鲁棒性。<strong>风险</strong>：当前精度可能无法满足 VR 的毫秒级追踪需求。</li></ul></div>
+<div class="section"><h3>📊 推荐评估</h3><div class="score-row">
+  <div class="score-label">💰 商业化潜力 <span class="score-num">8/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#0969da;width:0" data-width="80%"></div></div>
+  <div class="score-reason">隐私合规需求爆发，且零硬件成本切入点是颠覆性的，但精度和稳定性需第三方验证。</div>
+</div>
+<div class="score-row">
+  <div class="score-label">🔧 落地难度 <span class="score-num">7/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#cf222e;width:0" data-width="70%"></div></div>
+  <div class="score-reason">需与路由器厂商（如 TP-Link、小米）固件集成，或开发专用硬件模块，B2B2C 链条较长；环境中金属、多径效应会影响精度。</div>
+</div>
+<div class="score-row">
+  <div class="score-label">⭐ 值得关注度 <span class="score-num">9/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#8250df;width:0" data-width="90%"></div></div>
+  <div class="score-reason">将 WiFi 感知从学术实验推向可产品化原型，且用 Rust 保证实时性，技术路线极具前瞻性。</div>
+</div></div>
+<div class="section"><h3>⚔️ 锐评</h3>
+<div class="pros-cons">
+  <div class="pros"><h4>✅ 优点</h4><ul><li><strong>零硬件成本+隐私护城河</strong>：利用现成 WiFi 设备，无需任何额外传感器或摄像头，在隐私法规趋严的当下是核武器级别的卖点。</li>
+<li><strong>Rust 技术栈确保性能</strong>：选择 Rust 而非 Python 做信号处理，保证了低延迟和内存安全，为实时监测（如心跳）提供了基础。</li>
+<li><strong>场景想象力丰富</strong>：从健康到安防，从养老到零售，应用场景极具扩展性，不是一个“花瓶”项目。</li></ul></div>
+  <div class="cons"><h4>❌ 缺点</h4><ul><li><strong>精度与可靠性存疑</strong>：学术论文中 WiFi 感知在复杂环境（多人、强干扰）下的准确率往往大幅下降，项目演示可能是在理想实验室环境下测得的，实际部署效果存疑。</li>
+<li><strong>依赖特定芯片组</strong>：目前大多依赖 Intel 5300/ Atheros 等特定 WiFi 芯片的 CSI 数据，普通消费级路由器无法支持，需要与硬件厂商深度定制，规模化门槛高。</li>
+<li><strong>环境校准成本高</strong>：首次使用时需要针对房间布局、家具进行校准，用户部署体验可能远不如“插电即用”的摄像头方案。</li></ul></div>
+</div>
+<div class="verdict">💬 RuView 是“隐私悖论”时代的技术药丸——听起来很美，但要从 GitHub 仓库变成你家路由器里的固件，中间还隔着无数个 CSI 信号抖动和产品经理的头发。</div></div>
+</div>
+<div class="card" id="card-2">
+  <div class="card-header">
+    <span class="rank rank-2">#2</span>
+    <span class="repo-name">
+      <a href="https://github.com/tinyhumansai/openhuman" target="_blank">tinyhumansai/openhuman</a>
+      <span class="badge-new">NEW</span>
+    </span>
+    <div class="meta">
+      <span><span class="lang-dot" style="background:#dea584"></span> Rust</span>
+      <span class="today-stars-count" data-count="3329">⭐ 3,329 stars today</span>
+    </div>
+  </div>
+  <div class="desc">Your Personal AI super intelligence. Private, Simple and extremely powerful.</div>
+  <div class="section"></div>
+<div class="section"><h3>📖 项目简介</h3><p style="color:#8b949e;font-size:0.93em;">OpenHuman 是一个基于 Rust 构建的个人 AI 超级智能助手，主打“私有化、极简、超强”。它本质上是一个可以本地部署的 AI 推理与交互引擎，让你在不依赖云端服务的情况下，拥有一个随叫随到、数据完全由你掌控的 AI 大脑。核心解决的是用户对 AI 助手的隐私焦虑和依赖单一云服务商的痛点。</p></div>
+<div class="section"><h3>🎯 适合人群</h3><ul><li>注重数据隐私的产品经理，需要在本地测试 AI 功能原型</li>
+<li>技术决策者，评估在企业内部部署私有化 AI 助手的安全性与成本</li>
+<li>独立开发者或小团队，希望快速搭建一个离线 AI 交互界面</li>
+<li>Rust 爱好者或极客，对高性能、低资源消耗的 AI 推理方案感兴趣</li>
+<li>对“数字孪生”或“个人 AI 分身”概念感兴趣的创新者</li></ul></div>
+<div class="section"><h3>💡 思维发散</h3><ul><li><strong>个人数据银行产品</strong>：将 OpenHuman 作为核心引擎，打造一个“个人数据银行”，用户可上传邮件、笔记、聊天记录，AI 在本地学习后提供回顾、总结、决策建议。商业化价值高，因为用户愿意为数据隐私和安全付费，且可延伸为个人信息管家订阅服务。竞品如 Rewind AI（云端为主），OpenHuman 的本地化是核心差异化。</li>
+<li><strong>企业合规助手</strong>：针对金融、医疗等敏感行业，封装 OpenHuman 为“合规 AI 沙盒”，员工可在本地与 AI 讨论合规问题，数据不离开内网。商业化潜力巨大，企业合规成本高，但需解决与现有合规系统的集成难度。竞品如 Microsoft Copilot（云端），OpenHuman 的私有化部署可直接对标。</li>
+<li><strong>离线教育伴侣</strong>：将 OpenHuman 嵌入低成本硬件（如树莓派），做成面向偏远地区的“离线 AI 教师”，无需联网即可回答课程问题。商业化价值中等，适合公益或政府项目，但硬件生态和内容更新是挑战。可与边缘计算技术组合，降低带宽成本。</li>
+<li><strong>个人健康顾问</strong>：结合可穿戴设备数据（心率、睡眠），用 OpenHuman 在本地分析健康趋势，给出非诊断性建议。商业化潜力高，健康隐私是刚需，但需避免医疗监管风险。与 Apple HealthKit 或 Google Fit 集成可形成闭环。</li>
+<li><strong>AI 角色扮演沙盒</strong>：利用 OpenHuman 的本地推理能力，打造一个完全离线、无审查的 AI 角色扮演游戏，用户可自定义 AI 人格。商业化价值中等，适合特定用户群（如作家、游戏玩家），竞品如 Character.AI（云端），OpenHuman 的离线特性是卖点但可能限制联网更新。</li></ul></div>
+<div class="section"><h3>📊 推荐评估</h3><div class="score-row">
+  <div class="score-label">💰 商业化潜力 <span class="score-num">7/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#0969da;width:0" data-width="70%"></div></div>
+  <div class="score-reason">私有化 AI 助手需求明确，但需找到具体垂直场景来变现，否则容易沦为极客工具。</div>
+</div>
+<div class="score-row">
+  <div class="score-label">🔧 落地难度 <span class="score-num">6/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#cf222e;width:0" data-width="60%"></div></div>
+  <div class="score-reason">Rust 性能优秀，但 Rust 生态的 AI 库不如 Python 丰富，需要较强的技术背景才能定制。</div>
+</div>
+<div class="score-row">
+  <div class="score-label">⭐ 值得关注度 <span class="score-num">9/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#8250df;width:0" data-width="90%"></div></div>
+  <div class="score-reason">在隐私焦虑和 AI 民主化的大趋势下，这个方向很有潜力，尤其是 Rust 的高性能特性可能带来差异化体验。</div>
+</div></div>
+<div class="section"><h3>⚔️ 锐评</h3>
+<div class="pros-cons">
+  <div class="pros"><h4>✅ 优点</h4><ul><li>技术选型前瞻：Rust 保证了极低的资源占用和内存安全，相比 Python 方案更适合在老旧设备或边缘设备上运行，直接降低了私有化部署的门槛。</li>
+<li>直面核心痛点：明确打出“私有、极简、强大”的牌，精准切中当前用户对数据隐私和 AI 可用性的矛盾心理，方向感很好。</li>
+<li>社区势头强劲：单日 3,329 Star 证明其概念吸引力，早期关注度是项目启动的最大资本。</li></ul></div>
+  <div class="cons"><h4>❌ 缺点</h4><ul><li>功能定义模糊：“超级智能”这个词太空了，目前看更像是一个本地推理框架，缺乏 killer 应用场景的具体 demo，容易让非技术用户一头雾水。</li>
+<li>Rust 生态短板：Rust 在 AI 领域的工具链（如模型加载、LLM 优化）远不如 Python 成熟，这意味着想复现或扩展功能的开发者会面临不小的学习曲线，可能劝退主流用户。</li>
+<li>商业模式待验证：纯粹的开源项目如何从“酷”变为“赚钱”？目前看不到任何商业化路径的暗示，如果只是靠捐赠或托管服务，可持续性存疑。</li></ul></div>
+</div>
+<div class="verdict">💬 一个用 Rust 造“私人 AI”的漂亮概念，但别被“超级智能”忽悠了——它更像是一个需要你自己填空的半成品，先看社区能不能长出 killer app 再说。</div></div>
+</div>
+<div class="card" id="card-3">
+  <div class="card-header">
+    <span class="rank rank-3">#3</span>
+    <span class="repo-name">
+      <a href="https://github.com/rohitg00/agentmemory" target="_blank">rohitg00/agentmemory</a>
+      <span class="badge-new">NEW</span>
+    </span>
+    <div class="meta">
+      <span><span class="lang-dot" style="background:#3178c6"></span> TypeScript</span>
+      <span class="today-stars-count" data-count="1879">⭐ 1,879 stars today</span>
+    </div>
+  </div>
+  <div class="desc">#1 Persistent memory for AI coding agents based on real-world benchmarks</div>
+  <div class="section"></div>
+<div class="section"><h3>📖 项目简介</h3><p style="color:#8b949e;font-size:0.93em;"><code>agentmemory</code> 是一个为 AI 编程代理（Coding Agent）提供持久化记忆能力的 TypeScript 库。它基于真实世界的基准测试进行设计，旨在解决 AI 代理在长期任务中“记不住”上下文、状态或历史决策的核心痛点，让代理能像人类开发者一样拥有“长期记忆”。</p></div>
+<div class="section"><h3>🎯 适合人群</h3><ul><li><strong>AI Agent 开发者</strong>：正在构建需要多轮对话或长期任务执行的代码助手、自动化运维工具。</li>
+<li><strong>产品经理</strong>：规划下一代“有记忆”的 IDE 插件或 DevOps 机器人，提升用户粘性。</li>
+<li><strong>后端/全栈工程师</strong>：希望为现有 LLM 应用快速添加持久化上下文管理，无需从头造轮子。</li>
+<li><strong>AI 架构师</strong>：评估不同记忆方案（向量数据库 vs 本地存储）在代理场景下的性能与成本。</li></ul></div>
+<div class="section"><h3>💡 思维发散</h3><ul><li><strong>“记忆增强型”代码审查助手</strong>：结合 <code>agentmemory</code> 和 GitHub Actions，让 AI 记住项目历史代码风格、常见 Bug 模式及团队规范。每次 PR 审查时，AI 能基于“记忆”给出更符合团队上下文的自定义建议。商业化价值：企业级代码质量平台（如 SonarQube、CodeRabbit）的差异化功能，可定价为高级订阅（$50-200/月/团队）。</li>
+<li><strong>个人知识库的“记忆代理”</strong>：将 <code>agentmemory</code> 与 Obsidian/Notion 结合，构建一个能记住用户阅读习惯、笔记关联的 AI 搜索助手。用户提问“上次我分析竞品时提到的那个框架”，AI 能精准定位。竞品如 Mem.ai 更重全量索引，而 <code>agentmemory</code> 可做轻量级、本地优先的记忆层，适合隐私敏感用户。商业化：作为 Obsidian 插件付费（$5/月），或集成到企业知识管理工具。</li>
+<li><strong>多代理协作的“记忆总线”</strong>：在微服务化的 AI Agent 架构中，<code>agentmemory</code> 可作为中央记忆总线。例如，一个电商客服系统中有订单代理、退货代理、物流代理，它们共享记忆来避免重复询问用户。竞品如 LangChain 的记忆模块偏简单，<code>agentmemory</code> 的持久化与基准测试特性更适合生产环境。商业化：作为云服务 API（按 token 或存储量计费），类似 Pinecone 但专为代理设计。</li>
+<li><strong>“学习型”自动化测试工具</strong>：让测试代理记住每次测试执行后的失败模式、环境差异和修复策略。下次运行测试时，它能自动跳过已知的临时故障或应用历史修复。竞品如 Testim 依赖录制回放，而 <code>agentmemory</code> 可让 AI 代理真正“学习”测试行为。商业化：作为 SaaS 测试平台的高阶特性（$100-500/月）。</li></ul></div>
+<div class="section"><h3>📊 推荐评估</h3><div class="score-row">
+  <div class="score-label">💰 商业化潜力 <span class="score-num">8/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#0969da;width:0" data-width="80%"></div></div>
+  <div class="score-reason">记忆是 AI 代理规模化落地的关键瓶颈，且该库基于基准测试，说服力强。</div>
+</div>
+<div class="score-row">
+  <div class="score-label">🔧 落地难度 <span class="score-num">7/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#cf222e;width:0" data-width="70%"></div></div>
+  <div class="score-reason">需要与现有代理框架（如 LangChain、CrewAI）集成，且持久化方案（SQLite/向量DB）需根据场景选型，有一定技术门槛。</div>
+</div>
+<div class="score-row">
+  <div class="score-label">⭐ 值得关注度 <span class="score-num">9/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#8250df;width:0" data-width="90%"></div></div>
+  <div class="score-reason">单日近 2K Star 说明社区对“代理记忆”痛点有极高共识，项目理念领先。</div>
+</div></div>
+<div class="section"><h3>⚔️ 锐评</h3>
+<div class="pros-cons">
+  <div class="pros"><h4>✅ 优点</h4><ul><li><strong>场景聚焦精准</strong>：不泛化做“通用记忆”，而是专攻编程代理这一高价值、高复杂度场景，基准测试数据让技术选型有据可依。</li>
+<li><strong>抽象层级合理</strong>：提供 <code>remember</code>, <code>recall</code>, <code>forget</code> 等直观 API，同时支持自定义存储后端，兼顾易用性与扩展性。</li>
+<li><strong>TypeScript 原生</strong>：完美适配当前最活跃的 AI Agent 生态（VSCode 插件、Node.js 后端），减少语言摩擦。</li></ul></div>
+  <div class="cons"><h4>❌ 缺点</h4><ul><li><strong>生态依赖初期</strong>：目前仅依赖 GitHub 社区反馈，缺乏与主流框架（如 LangChain、Vercel AI SDK）的官方适配器，集成成本可能被低估。</li>
+<li><strong>持久化方案未明确</strong>：代码库未详细说明默认存储机制（SQLite? 内存+JSON?），可能导致早期用户在性能/持久性边界上踩坑。</li>
+<li><strong>基准测试透明度不足</strong>：“真实世界基准”具体指什么（SWE-bench? 自定义数据集?）未公开，可能影响技术决策者的信任度。</li></ul></div>
+</div>
+<div class="verdict">💬 记忆是 AI 代理的“灵魂”，但 <code>agentmemory</code> 目前更像一个精巧的骨架，还需要填充更多生产级血肉才能让开发者放心用。</div></div>
+</div>
+<div class="card" id="card-4">
+  <div class="card-header">
+    <span class="rank rank-other">#4</span>
+    <span class="repo-name">
+      <a href="https://github.com/obra/superpowers" target="_blank">obra/superpowers</a>
+      <span class="badge-new">NEW</span>
+    </span>
+    <div class="meta">
+      <span><span class="lang-dot" style="background:#8b949e"></span> Shell</span>
+      <span class="today-stars-count" data-count="1780">⭐ 1,780 stars today</span>
+    </div>
+  </div>
+  <div class="desc">An agentic skills framework &amp; software development methodology that works.</div>
+  <div class="section"></div>
+<div class="section"><h3>📖 项目简介</h3><p style="color:#8b949e;font-size:0.93em;">这是一个名为 Superpowers 的“代理技能框架”和软件开发方法论。核心是用Shell脚本和配置文件定义AI代理（Agent）可以执行的任务和技能，从而将AI从简单的聊天工具变成一个能与开发流程深度协作的“工作伙伴”。它试图解决的是：如何让AI代理不再只是回答问题的“嘴”，而是真正能动手干活的“手”。</p></div>
+<div class="section"><h3>🎯 适合人群</h3><ul><li>技术决策者（CTO/技术VP）：评估AI如何与现有开发流水线集成，提升团队效能</li>
+<li>资深后端/DevOps工程师：希望用脚本化方式驯服AI，而不是被AI的随机性折磨</li>
+<li>产品经理（懂点技术）：理解AI能力边界后，设计真正能落地的AI协作功能</li>
+<li>AI Infra团队：寻找一种轻量级、语言无关的Agent编排方案</li>
+<li>对“AI自动化”有执念的独立开发者：想快速搭建一个能替你写代码、跑测试的AI副驾</li></ul></div>
+<div class="section"><h3>💡 思维发散</h3><ul><li><strong>“AI版Jira自动化插件”</strong>：将Superpowers定义为的技能与Jira工单状态机绑定。当工单状态变为“开发中”，自动触发Agent拉取最新代码、运行单元测试、甚至生成PR。商业化价值：企业级AI自动化代理市场，竞品是RPA工具如UiPath，但Superpowers更轻量、与开发流程原生耦合。</li>
+<li><strong>“代码审查AI教练”</strong>：基于Superpowers框架，创建专门的“Code Review Agent”。它不只是找bug，还能根据团队编码规范（如Google Style Guide）自动修正代码风格，并提供重构建议。商业化价值：作为VS Code插件订阅收费，竞品是GitHub Copilot Code Review，但Superpowers的灵活规则引擎可让企业自定义审查策略。</li>
+<li><strong>“一键部署的AI运维副驾”</strong>：将Superpowers与Kubernetes、Terraform集成，定义“故障响应技能”。当监控系统告警，Agent自动登录集群、查看日志、执行回滚脚本。商业化价值：面向中小企业的AI运维SaaS，竞品是PagerDuty的AI模块，但Superpowers的脚本化让用户能低成本定制自己的应急流程。</li>
+<li><strong>“AI驱动的内部工具生成器”</strong>：利用Superpowers的框架，让非技术人员（如运营）用自然语言描述一个工作流（如“每天汇总销售数据并发送邮件”），系统自动生成对应的Shell脚本技能并执行。商业化价值：低代码平台的新范式，竞品是Zapier，但Superpowers能执行更复杂的本地/云上任务（如数据库查询、文件处理）。</li></ul></div>
+<div class="section"><h3>📊 推荐评估</h3><div class="score-row">
+  <div class="score-label">💰 商业化潜力 <span class="score-num">7/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#0969da;width:0" data-width="70%"></div></div>
+  <div class="score-reason">概念新颖，直击AI落地“最后一公里”的痛点，但市场教育成本高，且需要证明在复杂场景下比纯代码方案更优。</div>
+</div>
+<div class="score-row">
+  <div class="score-label">🔧 落地难度 <span class="score-num">6/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#cf222e;width:0" data-width="60%"></div></div>
+  <div class="score-reason">对技术团队有一定门槛（需懂Shell和系统管理），但比起训练一个大模型要简单得多；关键在于如何让“定义技能”这件事变得足够简单。</div>
+</div>
+<div class="score-row">
+  <div class="score-label">⭐ 值得关注度 <span class="score-num">8/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#8250df;width:0" data-width="80%"></div></div>
+  <div class="score-reason">这是AI工程化的重要探索，代表了“AI不是工具，而是方法”的思路转变，长期价值可能比短期热度更高。</div>
+</div></div>
+<div class="section"><h3>⚔️ 锐评</h3>
+<div class="pros-cons">
+  <div class="pros"><h4>✅ 优点</h4><ul><li><strong>务实主义</strong>：不搞花哨的Agent编排，直接用Shell和YAML定义任务，让AI回归“自动化脚本”本质，这才是工程界最熟悉的语言。</li>
+<li><strong>可观测性强</strong>：所有Agent行为都是脚本执行，日志、错误、结果都能被现有监控体系捕获，避免了AI黑盒的噩梦。</li>
+<li><strong>生态兼容性</strong>：天然与Git、Docker、CI/CD等工具链打通，不需要推翻现有基建，这对企业级采纳是巨大的优势。</li></ul></div>
+  <div class="cons"><h4>❌ 缺点</h4><ul><li><strong>“技能”定义成本高</strong>：要构建一个真正有用的技能库，需要投入大量人力编写和调试Shell脚本，这恰恰是目前AI想要取代的工作——写代码。</li>
+<li><strong>安全隐患</strong>：允许AI代理直接执行Shell脚本是双刃剑，一个不严谨的技能定义可能导致灾难性后果，安全审计机制目前看还比较薄弱。</li>
+<li><strong>缺乏用户感知</strong>：对普通开发者来说，“框架+方法论”的包装过于抽象，不如一个能直接用的“AI运维助手”客户端来得直观，短期可能曲高和寡。</li></ul></div>
+</div>
+<div class="verdict">💬 把AI关进Shell脚本的笼子里，想法很硬核，但别忘了笼子也得有人来焊。</div></div>
+</div>
+<div class="card" id="card-5">
+  <div class="card-header">
+    <span class="rank rank-other">#5</span>
+    <span class="repo-name">
+      <a href="https://github.com/K-Dense-AI/scientific-agent-skills" target="_blank">K-Dense-AI/scientific-agent-skills</a>
+      <span class="badge-new">NEW</span>
+    </span>
+    <div class="meta">
+      <span><span class="lang-dot" style="background:#3572A5"></span> Python</span>
+      <span class="today-stars-count" data-count="654">⭐ 654 stars today</span>
+    </div>
+  </div>
+  <div class="desc">A set of ready to use Agent Skills for research, science, engineering, analysis, finance and writing.</div>
+  <div class="section"></div>
+<div class="section"><h3>📖 项目简介</h3><p style="color:#8b949e;font-size:0.93em;">这是一个为科研、工程、金融和写作场景预置的AI Agent技能包。它本质上是将复杂的研究分析工作流（如文献检索、数据清洗、生成报告）封装成可直接调用的“技能模块”，解决的是通用大模型在垂直专业领域“能说不能做”的痛点——让AI Agent真正具备执行具体任务的能力，而非只是聊天。</p></div>
+<div class="section"><h3>🎯 适合人群</h3><ul><li>需要快速构建科研或工程自动化流程的AI应用开发者</li>
+<li>正在为内部工具或SaaS产品集成智能Agent功能的产品经理</li>
+<li>金融分析师、数据科学家等需要高频重复分析工作的专业人士</li>
+<li>希望降低AI Agent开发门槛的技术创业者</li>
+<li>关注“Agent Skills”标准化趋势的技术决策者</li></ul></div>
+<div class="section"><h3>💡 思维发散</h3><ul><li><strong>垂直领域SaaS插件市场</strong>：将每个“技能”（如“金融数据清洗”）做成独立付费插件，按调用次数或月费订阅。现有竞品如Zapier的AI Agent功能偏通用，缺乏深度专业领域动作。商业化价值：高，可切入专业工具长尾市场。</li>
+<li><strong>学术论文辅助写作工具</strong>：结合“文献检索”+“数据可视化”+“生成LaTeX表格”技能，打造面向研究生的All-in-One写作助手。竞品如Paperpal只会润色，无法执行数据操作。商业化价值：中高，学生付费意愿强，可捆绑学校订阅。</li>
+<li><strong>实时金融研报生成器</strong>：组合“财经新闻情感分析”+“历史数据回测”+“自动生成PPT”技能，为投行分析师提供秒级研报初稿。竞品如Bloomberg终端有数据无Agent流程。商业化价值：极高，但对合规要求高，需谨慎。</li>
+<li><strong>工程实验自动化平台</strong>：将“实验设计”+“参数调优”+“错误日志分析”技能整合，用于材料科学或药物研发的AI Lab。与Jupyter Notebook集成，形成“AI实验记录本”。商业化价值：高，企业研发预算充足，但需解决与现有工具链的兼容性。</li></ul></div>
+<div class="section"><h3>📊 推荐评估</h3><div class="score-row">
+  <div class="score-label">💰 商业化潜力 <span class="score-num">8/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#0969da;width:0" data-width="80%"></div></div>
+  <div class="score-reason">垂直领域技能标准化后容易形成订阅制壁垒，且目标用户付费能力较强。</div>
+</div>
+<div class="score-row">
+  <div class="score-label">🔧 落地难度 <span class="score-num">7/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#cf222e;width:0" data-width="70%"></div></div>
+  <div class="score-reason">技能模块质量依赖底层模型能力，且不同场景的数据安全和合规要求是隐形门槛。</div>
+</div>
+<div class="score-row">
+  <div class="score-label">⭐ 值得关注度 <span class="score-num">9/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#8250df;width:0" data-width="90%"></div></div>
+  <div class="score-reason">这是Agent生态从“玩具”走向“工具”的关键一环，代表了AI应用的下一个标准化方向。</div>
+</div></div>
+<div class="section"><h3>⚔️ 锐评</h3>
+<div class="pros-cons">
+  <div class="pros"><h4>✅ 优点</h4><ul><li><strong>模块化思维优秀</strong>：将复杂工作流拆解为可复用的“技能”，极大降低了非技术用户搭建Agent的门槛，类似“AI界的乐高”。</li>
+<li><strong>场景选择精准</strong>：科研、金融、工程都是高价值、高重复度的领域，用户付费意愿和痛点明确，避免了通用Agent的平庸陷阱。</li>
+<li><strong>技术栈务实</strong>：纯Python实现，易于集成到现有数据科学和DevOps流程中，减少了技术债务。</li></ul></div>
+  <div class="cons"><h4>❌ 缺点</h4><ul><li><strong>技能深度存疑</strong>：当前是“ready to use”的预置包，但科研场景中每个细分领域（如分子动力学 vs 金融时间序列）的差异巨大，通用技能可能“样样通、样样松”。</li>
+<li><strong>依赖模型能力天花板</strong>：若底层模型（如GPT-4、Claude）在特定专业任务上表现不佳，技能包的可靠性会瞬间崩塌，沦为“花架子”。</li>
+<li><strong>缺乏杀手级案例</strong>：项目文档中缺少与现有成熟工具（如Notion AI、Copilot for Science）的直接对比和Benchmark，让人难以衡量其真实边际收益。</li></ul></div>
+</div>
+<div class="verdict">💬 一个方向正确但仍在“吃模型红利”的Agent技能超市，能不能赚钱，取决于它能不能从“备选”变成“唯一”。</div></div>
+</div>
+<div class="card" id="card-6">
+  <div class="card-header">
+    <span class="rank rank-other">#6</span>
+    <span class="repo-name">
+      <a href="https://github.com/shiyu-coder/Kronos" target="_blank">shiyu-coder/Kronos</a>
+      <span class="badge-new">NEW</span>
+    </span>
+    <div class="meta">
+      <span><span class="lang-dot" style="background:#3572A5"></span> Python</span>
+      <span class="today-stars-count" data-count="363">⭐ 363 stars today</span>
+    </div>
+  </div>
+  <div class="desc">Kronos: A Foundation Model for the Language of Financial Markets</div>
+  <div class="section"></div>
+<div class="section"><h3>📖 项目简介</h3><p style="color:#8b949e;font-size:0.93em;">Kronos 是一个专门为金融市场“语言”设计的基础模型，它通过深度学习技术从海量金融数据（如价格序列、新闻、财报）中学习市场的行为模式与语义。其核心目标是提供一个通用的金融预训练模型，能够被微调用于各种下游金融任务（如趋势预测、风险分析等），试图解决通用大模型在金融领域专业性不足和“幻觉”严重的问题。</p></div>
+<div class="section"><h3>🎯 适合人群</h3><ul><li>量化交易研究员：需要构建复杂预测模型，但希望基于更专业的金融预训练模型而非从头训练。</li>
+<li>金融科技产品经理：正在设计智能投顾、市场分析或风险预警类产品，需要寻找更精准的AI底座。</li>
+<li>数据分析师与算法工程师：负责金融数据挖掘，希望利用预训练模型快速验证各类交易策略。</li>
+<li>金融领域的创业公司CTO：评估是否能用该模型降低开发成本，为产品提供差异化竞争力。</li>
+<li>对“大模型+垂直行业”结合感兴趣的AI研究员：研究金融时序与文本多模态的预训练范式。</li></ul></div>
+<div class="section"><h3>💡 思维发散</h3><ul><li><strong>智能投顾助手（C端订阅制）</strong>：基于Kronos对市场情绪的深度理解，打造一个能解读每日财报、新闻并给出仓位建议的AI助手。<strong>竞品</strong>：现有如Betterment主要依赖传统量化规则，缺乏对市场“语言”的语义理解。<strong>商业化价值</strong>：中高，C端付费意愿强（年费$100-300），但需解决合规风险。</li>
+<li><strong>企业级风险对冲引擎（B端SaaS）</strong>：为基金公司提供基于Kronos的实时市场异常检测和黑天鹅预警服务。<strong>竞品</strong>：彭博终端功能强大但价格昂贵，且依赖结构化数据。Kronos若能处理非结构化文本与价格联动，可切入中小企业市场。<strong>商业化价值</strong>：高，客单价可达数万美金/年，但需大量行业定制。</li>
+<li><strong>另类数据聚合平台（数据API模式）</strong>：将Kronos对社交媒体、新闻的语义分析能力打包成API，卖给量化基金作为因子信号。<strong>竞品</strong>：现有平台如Dataminr偏重事件驱动，但缺乏对价格序列的联合建模。<strong>商业化价值</strong>：中，需证明其超额收益（alpha）稳定性，API定价可参考每百万次调用$0.5-$2。</li>
+<li><strong>“人话版”研报生成器（工具型产品）</strong>：输入一份复杂财报，Kronos自动生成面向散户的通俗解读和关键词图谱。<strong>竞品</strong>：同花顺问财等偏问答，但缺乏深度推理。<strong>商业化价值</strong>：低，变现依赖广告或增值服务，需用户规模支撑。</li>
+<li><strong>结合“强化学习+模拟交易”的训练平台</strong>：用Kronos作为环境模型，模拟市场对策略的反应，帮助算法工程师在虚拟环境中优化交易逻辑。<strong>商业化价值</strong>：中高，可打包成云端GPU服务，按算力收费，目标用户是中小量化团队。</li></ul></div>
+<div class="section"><h3>📊 推荐评估</h3><div class="score-row">
+  <div class="score-label">💰 商业化潜力 <span class="score-num">7/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#0969da;width:0" data-width="70%"></div></div>
+  <div class="score-reason">金融AI落地场景明确，但模型效果需经实盘验证，且合规成本高。</div>
+</div>
+<div class="score-row">
+  <div class="score-label">🔧 落地难度 <span class="score-num">8/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#cf222e;width:0" data-width="80%"></div></div>
+  <div class="score-reason">金融数据获取困难、模型解释性差，且需要与券商/交易所深度对接才能闭环。</div>
+</div>
+<div class="score-row">
+  <div class="score-label">⭐ 值得关注度 <span class="score-num">9/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#8250df;width:0" data-width="90%"></div></div>
+  <div class="score-reason">“金融语言基础模型”这个赛道很性感，如果效果优于通用模型，可能改变行业范式。</div>
+</div></div>
+<div class="section"><h3>⚔️ 锐评</h3>
+<div class="pros-cons">
+  <div class="pros"><h4>✅ 优点</h4><ul><li><strong>赛道卡位精准</strong>：直接切入“金融语言”这个垂直领域，避免了与GPT-4等通用模型的正面竞争，有很强的差异化定位。</li>
+<li><strong>技术路线清晰</strong>：明确要做“基础模型”而非简单分类器，为后续多任务迁移学习留有空间，这种架构设计更专业。</li>
+<li><strong>开源策略明智</strong>：开源可以吸引全球量化社区贡献数据和微调模型，加速迭代，同时降低对自身数据集的依赖。</li></ul></div>
+  <div class="cons"><h4>❌ 缺点</h4><ul><li><strong>“金融语言”定义模糊</strong>：金融市场的“语言”是否真能被纯粹用预训练模型捕捉？市场行为包含大量博弈、反身性和黑天鹅，模型可能学到的是历史噪音而非规律。</li>
+<li><strong>数据与效果双杀风险</strong>：高质量金融数据（如Level2行情、独家研报）极其昂贵且封闭，若仅用公开数据训练，模型效果很可能不如传统技术指标+简单LSTM。</li>
+<li><strong>缺乏杀手机应用</strong>：目前只是一个模型，没有配套的Demo或可立即使用的交易工具，对普通开发者门槛太高，容易沦为“技术收藏品”。</li></ul></div>
+</div>
+<div class="verdict">💬 想法很好，但金融市场的“语言”里充满谎言和噪音，Kronos要是真能读懂，建议直接发论文别开源，自己闷声赚大钱。</div></div>
+</div>
+<div class="card" id="card-7">
+  <div class="card-header">
+    <span class="rank rank-other">#7</span>
+    <span class="repo-name">
+      <a href="https://github.com/roboflow/supervision" target="_blank">roboflow/supervision</a>
+      <span class="badge-new">NEW</span>
+    </span>
+    <div class="meta">
+      <span><span class="lang-dot" style="background:#3572A5"></span> Python</span>
+      <span class="today-stars-count" data-count="83">⭐ 83 stars today</span>
+    </div>
+  </div>
+  <div class="desc">We write your reusable computer vision tools. 💜</div>
+  <div class="section"></div>
+<div class="section"><h3>📖 项目简介</h3><p style="color:#8b949e;font-size:0.93em;">Supervision 是 Roboflow 开源的一套计算机视觉工具库，旨在提供可复用的模块化组件，让开发者能快速完成目标检测、追踪、分割等视觉任务的推理、后处理和可视化。它解决的核心痛点是：CV 项目中大量重复的“脏活累活”（如绘制边界框、过滤检测结果、帧间追踪）不必从零造轮子。</p></div>
+<div class="section"><h3>🎯 适合人群</h3><ul><li>计算机视觉工程师，需要快速搭建或优化目标检测/分割 demo</li>
+<li>AI 产品经理，想低成本验证视觉功能的 MVP（如人流计数、货架缺货检测）</li>
+<li>数据科学家，对模型输出进行可视化分析或批量后处理</li>
+<li>自动化测试/监控工程师，利用视觉模型做实时质检或异常检测</li>
+<li>创业团队，希望以最低代码量集成视觉能力到现有产品中</li></ul></div>
+<div class="section"><h3>💡 思维发散</h3><ul><li><strong>智能零售“货架合规性”监控</strong>：利用 Supervision 的检测+追踪能力，可构建实时货架缺货/错放检测工具。竞品如 Trax、Planorama 价格昂贵且需专用硬件，而 Supervision + 通用模型（如 YOLO）可实现低成本 SaaS 方案。价值点：零售门店每月节省数万元巡检人力。</li>
+<li><strong>“一键去水印”视频编辑插件</strong>：结合分割模型（如 SAM）与 Supervision 的掩码操作，自动识别并移除视频中的 Logo/文字，输出纯净素材。现有工具（如 Remove.bg）仅支持图片且精度不足。商业化：按处理时长或视频长度收费，瞄准自媒体和素材库用户。</li>
+<li><strong>工业缺陷检测的“低代码”平台</strong>：用 Supervision 封装模型推理、标注可视化、异常帧缓存等模块，让非算法工程师也能通过配置文件快速部署产线质检。与 MLOps 工具（如 MLflow）组合，形成“训练→部署→监控”闭环。价值点：中小企业能以 1/10 的成本替代传统视觉系统。</li>
+<li><strong>直播带货“虚拟试妆/试戴”</strong>：利用 Supervision 的面部关键点检测与追踪，叠加 AR 滤镜（如眼镜、口红动态效果）。竞品如 Spark AR 需学习原生 SDK，而 Supervision 可结合 MediaPipe 快速原型。商业化：按直播间时长或订单抽成，切入中小主播市场。</li></ul></div>
+<div class="section"><h3>📊 推荐评估</h3><div class="score-row">
+  <div class="score-label">💰 商业化潜力 <span class="score-num">8/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#0969da;width:0" data-width="80%"></div></div>
+  <div class="score-reason">模块化工具可直接嵌入付费产品（如监控系统、质检软件），降低视觉功能开发成本，变现路径清晰</div>
+</div>
+<div class="score-row">
+  <div class="score-label">🔧 落地难度 <span class="score-num">3/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#cf222e;width:0" data-width="30%"></div></div>
+  <div class="score-reason">安装简单、API 设计友好，与主流模型（YOLO、SAM）无缝集成，甚至可无网络使用</div>
+</div>
+<div class="score-row">
+  <div class="score-label">⭐ 值得关注度 <span class="score-num">9/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#8250df;width:0" data-width="90%"></div></div>
+  <div class="score-reason">填补了 CV 工具链中“中间件”空白，随着边缘 AI 和实时视觉应用爆发，需求会持续增长</div>
+</div></div>
+<div class="section"><h3>⚔️ 锐评</h3>
+<div class="pros-cons">
+  <div class="pros"><h4>✅ 优点</h4><ul><li><strong>零门槛上手</strong>：几行代码就能完成检测结果的可视化和过滤，对非算法背景的产品经理极其友好</li>
+<li><strong>模块化设计</strong>：将视觉任务拆解为可组合的组件（如跟踪器、标注器），避免重复造轮子，维护成本低</li>
+<li><strong>生态绑定聪明</strong>：与 Roboflow 自家模型和数据集管理平台无缝对接，形成“训练→优化→部署”闭环</li></ul></div>
+  <div class="cons"><h4>❌ 缺点</h4><ul><li><strong>依赖上游模型</strong>：工具本身不包含核心推理能力，若 YOLO/SAM 等基础模型更新 API，Supervision 必须跟进，存在兼容性风险</li>
+<li><strong>性能瓶颈明显</strong>：在低端设备（如树莓派）上，同时运行跟踪器和可视化渲染时，帧率下降严重，不适合高实时性场景</li>
+<li><strong>过度简化的陷阱</strong>：封装太“黑盒”，高级用户（如需要自定义 NMS 逻辑）可能需要绕开工具直接操作底层，反而增加复杂度</li></ul></div>
+</div>
+<div class="verdict">💬 它是 CV 界的“宜家家具”——好看好用但别指望自己改结构，适合快速搭积木而非雕花。</div></div>
+</div>
+<div class="card" id="card-8">
+  <div class="card-header">
+    <span class="rank rank-other">#8</span>
+    <span class="repo-name">
+      <a href="https://github.com/influxdata/telegraf" target="_blank">influxdata/telegraf</a>
+      <span class="badge-new">NEW</span>
+    </span>
+    <div class="meta">
+      <span><span class="lang-dot" style="background:#00ADD8"></span> Go</span>
+      <span class="today-stars-count" data-count="215">⭐ 215 stars today</span>
+    </div>
+  </div>
+  <div class="desc">Agent for collecting, processing, aggregating, and writing metrics, logs, and other arbitrary data.</div>
+  <div class="section"></div>
+<div class="section"><h3>📖 项目简介</h3><p style="color:#8b949e;font-size:0.93em;">Telegraf 是一个用 Go 语言编写的轻量级数据采集代理，核心能力是从各种来源（系统指标、数据库、API、消息队列等）收集、处理、聚合数据，并写入 InfluxDB 等存储后端。它解决了数据管道中最脏最累的“最后一公里”问题——让运维和开发者不必为每个数据源写定制采集脚本。</p></div>
+<div class="section"><h3>🎯 适合人群</h3><ul><li><strong>SRE/DevOps 工程师</strong>：需要统一监控服务器、容器、中间件的性能和日志</li>
+<li><strong>后端开发与平台团队</strong>：构建内部可观测性平台，需要标准化的数据采集层</li>
+<li><strong>IoT 数据工程师</strong>：需要从大量边缘设备采集时序数据并上传中心</li>
+<li><strong>产品经理（数据平台方向）</strong>：想要快速搭建用户行为埋点或业务指标采集系统</li>
+<li><strong>开源爱好者</strong>：研究 Go 语言高性能插件架构的设计模式</li></ul></div>
+<div class="section"><h3>💡 思维发散</h3><ul><li><strong>边缘计算监控SaaS</strong>：基于 Telegraf 打造“即插即用”的 IoT 设备监控服务，用户只需在设备上运行一条命令即可接入。竞品如 Datadog Agent 太重且收费过高，Telegraf 原生轻量且插件丰富，可主打“5分钟上线”的差异化卖点。商业化潜力：9/10</li>
+<li><strong>全栈可观测性数据管道中间件</strong>：将 Telegraf 与 Kafka/Fluentd 组合，构建企业级数据路由层。用户可在 Web UI 上拖拽配置数据源→清洗→分流，替代 Logstash 等老派方案。现有竞品如 Cribl 价格昂贵，开源 Telegraf 可作为底座降低门槛，增值服务收费。商业化潜力：8/10</li>
+<li><strong>用户行为日志采集SDK替代品</strong>：将 Telegraf 部署为 web 应用的后端 sidecar，自动采集请求响应、错误率、慢查询等，无需修改业务代码。相比传统埋点 SDK 侵入性强，这种无侵入方式更能被 CTO 接受。商业化潜力：7/10</li>
+<li><strong>AI 训练数据采集器</strong>：结合 Telegraf 的丰富输入插件，为 AI 模型自动采集工业传感器数据、服务器负载数据，省去手动数据标注和格式转换。可做成“数据即服务”产品，按数据量收费。商业化潜力：6/10（市场较垂直）</li></ul></div>
+<div class="section"><h3>📊 推荐评估</h3><div class="score-row">
+  <div class="score-label">💰 商业化潜力 <span class="score-num">8/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#0969da;width:0" data-width="80%"></div></div>
+  <div class="score-reason">可观测性和物联网数据管道是刚需，Telegraf 作为核心组件可衍生多种付费服务</div>
+</div>
+<div class="score-row">
+  <div class="score-label">🔧 落地难度 <span class="score-num">5/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#cf222e;width:0" data-width="50%"></div></div>
+  <div class="score-reason">插件配置灵活但文档不够直观，新手需要时间理解数据流概念</div>
+</div>
+<div class="score-row">
+  <div class="score-label">⭐ 值得关注度 <span class="score-num">9/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#8250df;width:0" data-width="90%"></div></div>
+  <div class="score-reason">每天 200+ star 表明其在 DevOps 社区仍是绝对主流，且 Go 语言性能优势明显</div>
+</div></div>
+<div class="section"><h3>⚔️ 锐评</h3>
+<div class="pros-cons">
+  <div class="pros"><h4>✅ 优点</h4><ul><li><strong>插件生态极其丰富</strong>：200+ 输入/输出/处理器插件，覆盖从 Prometheus 到 MQTT 几乎所有主流系统，堪称数据采集界的“万能转接头”</li>
+<li><strong>性能轻量且稳定</strong>：Go 编译为单二进制，内存占用常年在 30MB 以下，在生产环境跑几年不崩溃是基本操作</li>
+<li><strong>配置即代码</strong>：TOML 配置清晰，支持热加载，与 Ansible/Terraform 等 IaC 工具配合默契</li></ul></div>
+  <div class="cons"><h4>❌ 缺点</h4><ul><li><strong>文档碎片化严重</strong>：插件文档分散在各自页面，新手想找“如何采集 PostgreSQL 慢查询”需要反复跳转，不如 Grafana Agent 的集成文档友好</li>
+<li><strong>聚合能力偏弱</strong>：内置的聚合器（如 rolling average）功能有限，复杂流式处理（如滑动窗口异常检测）仍需依赖外部流处理框架</li>
+<li><strong>企业级功能缺失</strong>：没有原生 UI 管理界面，没有集群协调能力，大规模部署时需要自建编排（如 Ansible 批量下发配置），被 Cribl 等商业产品碾压</li></ul></div>
+</div>
+<div class="verdict">💬 Telegraf 是数据采集界的“瑞士军刀”，但如果你想用它建一座宫殿，还得自己搭脚手架。</div></div>
+</div>
+<div class="card" id="card-9">
+  <div class="card-header">
+    <span class="rank rank-other">#9</span>
+    <span class="repo-name">
+      <a href="https://github.com/supertone-inc/supertonic" target="_blank">supertone-inc/supertonic</a>
+      <span class="badge-new">NEW</span>
+    </span>
+    <div class="meta">
+      <span><span class="lang-dot" style="background:#F05138"></span> Swift</span>
+      <span class="today-stars-count" data-count="1128">⭐ 1,128 stars today</span>
+    </div>
+  </div>
+  <div class="desc">Lightning-Fast, On-Device, Multilingual TTS — running natively via ONNX.</div>
+  <div class="section"></div>
+<div class="section"><h3>📖 项目简介</h3><p style="color:#8b949e;font-size:0.93em;">Supertonic 是一个专为 Apple 生态设计的极速、本地化、多语言文本转语音（TTS）引擎，核心卖点是基于 ONNX 运行时实现原生级性能。它解决了传统云端 TTS 延迟高、依赖网络、隐私风险大的痛点，让开发者能在 iPhone、iPad、Mac 上实现近乎实时的语音合成，且无需联网。</p></div>
+<div class="section"><h3>🎯 适合人群</h3><ul><li>iOS/macOS 应用产品经理：需要为 App 集成高质量、低延迟的语音功能，但不想被网络或云费用绑架。</li>
+<li>语音交互产品开发者：如智能助手、有声书阅读器、导航应用，追求本地化响应和隐私合规。</li>
+<li>多语言内容平台的技术决策者：需要支持多种语言（如英语、中文、日语等）的 TTS，且用户场景对实时性要求高。</li>
+<li>独立开发者或小团队：希望快速在 Apple 设备上部署 TTS，降低后端服务器成本和运维复杂度。</li>
+<li>对隐私敏感的用户体验设计师：产品涉及敏感信息（如医疗、金融对话），必须确保数据不出设备。</li></ul></div>
+<div class="section"><h3>💡 思维发散</h3><ul><li><strong>离线语音笔记转文字播报助手</strong>：结合本地 ASR（如 Whisper）和 Supertonic，打造一个“记录-朗读”闭环的隐私优先产品。用户口述笔记，App 实时转文字并朗读确认，无需任何网络流量。竞品如 Otter.ai 依赖云端，隐私和延迟是软肋。商业化价值：针对律师、医生等高频录音人群，提供收费订阅的隐私安全版本。</li>
+<li><strong>多语言实时游戏角色配音引擎</strong>：将 Supertonic 嵌入移动游戏或互动小说中，让 NPC 根据剧情动态生成不同情绪、语速的对话。现有竞品如 ElevenLabs 的云端服务延迟高且成本昂贵。与游戏引擎 Unity/SpriteKit 结合，可打造“语音即剧情”的订阅制 SDK，向独立游戏开发者收费。</li>
+<li><strong>智能家居本地语音闹钟</strong>：用 Supertonic 生成个性化语音提醒（如“今天有雨，带伞”），搭配本地天气 API 和日历数据。竞品如 Alexa 依赖云端，隐私争议大。商业化价值：作为智能家居硬件厂商的增值服务，一次性授权费或按设备数收费，主打隐私卖点。</li>
+<li><strong>法庭/会议实时语音转写与复述</strong>：结合本地 ASR 和 Supertonic，在会议中实时将各方发言转写并立即用不同语音复述（如“甲方说：...，乙方回应：...”）。竞品如 Otter.ai 或 Microsoft Teams 的实时翻译依赖网络，延迟高且数据外泄风险大。商业化价值：面向法律、金融等合规行业，按席次或会议时长订阅，定价可高于通用方案。</li></ul></div>
+<div class="section"><h3>📊 推荐评估</h3><div class="score-row">
+  <div class="score-label">💰 商业化潜力 <span class="score-num">8/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#0969da;width:0" data-width="80%"></div></div>
+  <div class="score-reason">苹果生态内 TTS 需求明确，隐私和低延迟是硬通货，可做 SDK 授权或增值服务。</div>
+</div>
+<div class="score-row">
+  <div class="score-label">🔧 落地难度 <span class="score-num">6/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#cf222e;width:0" data-width="60%"></div></div>
+  <div class="score-reason">需熟悉 Swift 和 ONNX 模型转换，但 ONNX 生态成熟，Apple 原生支持框架有优势。</div>
+</div>
+<div class="score-row">
+  <div class="score-label">⭐ 值得关注度 <span class="score-num">9/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#8250df;width:0" data-width="90%"></div></div>
+  <div class="score-reason">多语言、本地化、高性能的三合一组合，几乎是下一代端侧语音交互的标配。</div>
+</div></div>
+<div class="section"><h3>⚔️ 锐评</h3>
+<div class="pros-cons">
+  <div class="pros"><h4>✅ 优点</h4><ul><li>性能炸裂：基于 ONNX 运行时和多模态优化，在 Apple Silicon 设备上延迟低至几十毫秒，碾压同类端侧方案。</li>
+<li>隐私友好：完全离线运行，数据不出设备，符合 GDPR 和 Apple 严苛的隐私审核标准。</li>
+<li>多语言原生支持：内置多语言模型，无需额外下载或切换，用户体验连贯顺畅。</li></ul></div>
+  <div class="cons"><h4>❌ 缺点</h4><ul><li>生态锁定：目前仅支持 Apple 平台（iOS/macOS），Android 和 Web 开发者只能干瞪眼，限制了市场规模。</li>
+<li>模型灵活性有限：仅提供预训练模型，不支持用户自定义音色或微调，对有定制化需求的产品（如品牌语音）是硬伤。</li>
+<li>文档和社区尚浅：作为新项目，示例代码和 API 文档不够丰富，入门门槛对非 TTS 专家较高。</li></ul></div>
+</div>
+<div class="verdict">💬 苹果生态内 TTS 的“卷王”，但别指望它帮你搞定跨平台和定制化——这是给“果粉开发者”的专属福利。</div></div>
+</div>
+<div class="card" id="card-10">
+  <div class="card-header">
+    <span class="rank rank-other">#10</span>
+    <span class="repo-name">
+      <a href="https://github.com/Genymobile/scrcpy" target="_blank">Genymobile/scrcpy</a>
+      <span class="badge-new">NEW</span>
+    </span>
+    <div class="meta">
+      <span><span class="lang-dot" style="background:#555555"></span> C</span>
+      <span class="today-stars-count" data-count="851">⭐ 851 stars today</span>
+    </div>
+  </div>
+  <div class="desc">Display and control your Android device</div>
+  <div class="section"></div>
+<div class="section"><h3>📖 项目简介</h3><p style="color:#8b949e;font-size:0.93em;">scrcpy 是一个开源命令行工具，能在电脑上实时显示并控制你的 Android 设备（手机、平板等）。核心价值在于它通过 USB 或 Wi-Fi 连接，提供低延迟、高画质的镜像体验，且完全不需要在手机上安装任何附加应用。它解决了开发者、测试人员或任何需要频繁操作手机的用户在PC端高效操控安卓设备的核心痛点。</p></div>
+<div class="section"><h3>🎯 适合人群</h3><ul><li>移动端开发者与测试人员：需要在电脑上调试、录屏、演示应用</li>
+<li>产品经理与UI/UX设计师：在电脑上直观演示原型或录制操作流程</li>
+<li>技术博客作者与视频创作者：需要高质量、无卡顿的手机屏幕录制素材</li>
+<li>重度手机用户：希望在电脑上处理手机通知、回复消息、刷短视频</li>
+<li>企业IT与远程支持人员：快速查看并远程协助同事或客户的安卓设备</li></ul></div>
+<div class="section"><h3>💡 思维发散</h3><ul><li>企业级远程设备管理SaaS：基于scrcpy开发一套团队协作工具，支持多人同时查看并控制多台安卓设备（如测试机群、客服演示）。商业化路径：按设备/用户数收费，对标TeamViewer但专注安卓，差距在于目前缺乏企业级权限与审计功能。</li>
+<li>游戏直播与云手机服务：将scrcpy的极低延迟能力包装成“云手机”服务，用户通过浏览器即可操控远程安卓机玩手游。商业化潜力高，可对标腾讯START云游戏，但scrcpy更轻量、延迟更低，劣势在于缺乏商业化的云编排与计费系统。</li>
+<li>教育与演示工具整合：与视频会议软件（如Zoom、腾讯会议）深度集成，实现一键共享手机屏幕并远程控制。商业化：作为插件或增值功能收费，竞品为AirServer，但scrcpy免费且跨平台，优势明显。</li>
+<li>自动化测试与无头浏览器结合：将scrcpy与Appium、Selenium等测试框架联动，实现PC端编写脚本直接控制安卓设备。商业化：嵌入企业CI/CD流水线的测试巡检服务，按执行次数收费，竞品为AWS Device Farm，但scrcpy成本极低、部署灵活。</li></ul></div>
+<div class="section"><h3>📊 推荐评估</h3><div class="score-row">
+  <div class="score-label">💰 商业化潜力 <span class="score-num">8/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#0969da;width:0" data-width="80%"></div></div>
+  <div class="score-reason">技术底座扎实，可衍生出云手机、远程协作等付费场景，但需补全商业级功能</div>
+</div>
+<div class="score-row">
+  <div class="score-label">🔧 落地难度 <span class="score-num">4/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#cf222e;width:0" data-width="40%"></div></div>
+  <div class="score-reason">开源社区成熟，开箱即用，但商业化需自建计费和运维体系</div>
+</div>
+<div class="score-row">
+  <div class="score-label">⭐ 值得关注度 <span class="score-num">9/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#8250df;width:0" data-width="90%"></div></div>
+  <div class="score-reason">工具解决真实高频痛点，且跨平台、零门槛，是安卓生态的“核心基础设施”</div>
+</div></div>
+<div class="section"><h3>⚔️ 锐评</h3>
+<div class="pros-cons">
+  <div class="pros"><h4>✅ 优点</h4><ul><li>极致轻量与高性能：纯C语言实现，延迟低至35ms，吊打一众商业投屏软件</li>
+<li>零侵入性：无需Root、无需安装手机端App，仅需ADB调试，安全且兼容性极强</li>
+<li>开源社区活跃：迭代快、文档清晰，支持Mac/Windows/Linux全平台</li></ul></div>
+  <div class="cons"><h4>❌ 缺点</h4><ul><li>缺乏商业级功能：无用户管理、权限审计、多人协作等企业场景刚需</li>
+<li>依赖ADB环境：对普通用户有一定门槛，且Wi-Fi连接稳定性不如USB</li>
+<li>不支持iOS设备：生态闭环，无法满足跨平台测试需求</li></ul></div>
+</div>
+<div class="verdict">💬 scrcpy是安卓操控界的“瑞士军刀” —— 免费、锋利、无废话，但想用它来赚大钱，你得自己配上财务系统和商业铠甲。</div></div>
+</div>
+  <div class="footer">
+    数据来源：<a href="https://github.com/trending" target="_blank">GitHub Trending</a> ·
+    分析引擎：DeepSeek AI · 生成时间：2026-05-15 04:46
+  </div>
+</div>
+</div>
+<script>
+(function() {
+  const links = document.querySelectorAll('#sidebar a');
+  const cards = document.querySelectorAll('.card[id]');
+
+  // 1. 卡片入场 + 评分条动画 + 侧边栏高亮
+  const sectionObserver = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        // 卡片入场
+        entry.target.classList.add('visible');
+
+        // 侧边栏高亮
+        links.forEach(function(a) {
+          a.classList.toggle('active', a.getAttribute('href') === '#' + entry.target.id);
+        });
+
+        // 评分条动画
+        var bars = entry.target.querySelectorAll('.score-bar-fill');
+        bars.forEach(function(bar) {
+          bar.style.width = bar.getAttribute('data-width');
+        });
+      }
+    });
+  }, { rootMargin: '-10% 0px -15% 0px', threshold: 0.1 });
+
+  cards.forEach(function(c) { sectionObserver.observe(c); });
+
+  // 2. Star 计数动画
+  document.querySelectorAll('.today-stars-count').forEach(function(el) {
+    var target = parseInt(el.getAttribute('data-count')) || 0;
+    var duration = 1000;
+    var start = performance.now();
+    function update(now) {
+      var elapsed = now - start;
+      var progress = Math.min(elapsed / duration, 1);
+      var eased = 1 - Math.pow(1 - progress, 3);
+      el.textContent = Math.round(target * eased).toLocaleString();
+      if (progress < 1) requestAnimationFrame(update);
+    }
+    requestAnimationFrame(update);
+  });
+})();
+</script>
+</body>
+</html>
