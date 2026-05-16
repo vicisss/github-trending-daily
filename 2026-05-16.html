@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GitHub Trending 日报 — 2026-05-16</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #ffffff; color: #24292f; font-family: -apple-system, BlinkMacSystemFont,
+      'Segoe UI', 'Noto Sans SC', 'PingFang SC', sans-serif;
+    line-height: 1.7;
+  }
+  .main-content { margin-left: 260px; padding: 40px 20px; }
+  .container { max-width: 900px; margin: 0 auto; }
+  .header {
+    text-align: center; padding: 60px 0 40px;
+    border-bottom: 1px solid #d0d7de; margin-bottom: 48px;
+  }
+  .header h1 {
+    font-size: 2.2em; background: linear-gradient(135deg, #0969da, #8250df);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .header .date { color: #656d76; margin-top: 8px; font-size: 1.05em; }
+  .header .summary {
+    margin-top: 20px; padding: 16px 24px; background: #f6f8fa;
+    border-radius: 8px; border-left: 3px solid #0969da;
+    text-align: left; color: #656d76; font-size: 0.95em;
+  }
+  .card {
+    background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 12px;
+    padding: 32px; margin-bottom: 28px;
+    transition: border-color 0.2s, box-shadow 0.2s; scroll-margin-top: 24px;
+  }
+  .card:hover { border-color: #0969da; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .card-header {
+    display: flex; align-items: center; gap: 14px; margin-bottom: 18px;
+    flex-wrap: wrap;
+  }
+  .rank {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 36px; height: 36px; border-radius: 50%;
+    font-weight: 700; font-size: 0.95em; flex-shrink: 0;
+  }
+  .rank-1 { background: #f0c419; color: #fff; }
+  .rank-2 { background: #a3b4c2; color: #fff; }
+  .rank-3 { background: #cd7f32; color: #fff; }
+  .rank-other { background: #eaeef2; color: #656d76; }
+  .repo-name { font-size: 1.15em; font-weight: 600; }
+  .repo-name a { color: #0969da; text-decoration: none; }
+  .repo-name a:hover { text-decoration: underline; }
+  .meta { display: flex; gap: 16px; flex-wrap: wrap; font-size: 0.85em; color: #656d76; }
+  .meta span { display: inline-flex; align-items: center; gap: 4px; }
+  .lang-dot {
+    display: inline-block; width: 10px; height: 10px; border-radius: 50%;
+  }
+  .desc { color: #656d76; font-size: 0.93em; margin-bottom: 20px; line-height: 1.6; }
+  .section { margin-top: 20px; }
+  .section h3 { font-size: 1em; margin-bottom: 10px; color: #24292f; }
+  .section ul { padding-left: 20px; color: #24292f; font-size: 0.93em; }
+  .section ul li { margin-bottom: 6px; }
+  .pros-cons { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .pros { background: #dafbe1; border-radius: 8px; padding: 16px; }
+  .cons { background: #ffebe9; border-radius: 8px; padding: 16px; }
+  .pros h4 { color: #1a7f37; font-size: 0.93em; margin-bottom: 8px; }
+  .cons h4 { color: #cf222e; font-size: 0.93em; margin-bottom: 8px; }
+  .pros ul, .cons ul { color: #24292f; font-size: 0.9em; }
+  .verdict { margin-top: 16px; padding: 12px 16px; background: #f3e8ff;
+    border-radius: 6px; font-style: italic; color: #8250df; font-size: 0.93em; }
+  .footer {
+    text-align: center; padding: 40px 0; color: #656d76; font-size: 0.85em;
+    border-top: 1px solid #d0d7de; margin-top: 20px;
+  }
+  .footer a { color: #0969da; }
+
+  /* 左侧目录 */
+  #sidebar {
+    position: fixed; left: 0; top: 0; width: 250px; height: 100vh;
+    background: #f6f8fa; border-right: 1px solid #d0d7de;
+    overflow-y: auto; padding: 24px 0; z-index: 100;
+  }
+  #sidebar .toc-title {
+    padding: 0 20px 16px; font-size: 0.85em; font-weight: 700;
+    color: #656d76; text-transform: uppercase; letter-spacing: 0.05em;
+    border-bottom: 1px solid #d0d7de; margin-bottom: 8px;
+  }
+  #sidebar a {
+    display: block; padding: 8px 20px; color: #656d76;
+    text-decoration: none; font-size: 0.87em;
+    border-left: 2px solid transparent; transition: all 0.15s;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  #sidebar a:hover { color: #24292f; background: #eaeef2; }
+  #sidebar a.active {
+    color: #0969da; background: #eaeef2;
+    border-left-color: #0969da;
+  }
+  #sidebar a .toc-rank {
+    display: inline-block; width: 22px; font-weight: 600; color: #0969da;
+  }
+  #sidebar a .toc-dot-new {
+    display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+    background: #ff9800; margin-left: 4px; vertical-align: middle;
+  }
+
+  /* 技术风向总结 */
+  .trend-summary {
+    background: linear-gradient(135deg, #f6f8fa 0%, #e8f0fe 50%, #f6f8fa 100%);
+    background-size: 200% 200%;
+    animation: gradientShift 8s ease infinite;
+    border: 1px solid #d0d7de; border-radius: 12px;
+    padding: 28px 32px; margin-bottom: 40px;
+    border-left: 4px solid #0969da;
+  }
+  .trend-summary h2 {
+    font-size: 1.15em; color: #0969da; margin-bottom: 12px;
+  }
+  .trend-summary p {
+    font-size: 0.95em; color: #24292f; line-height: 1.8;
+  }
+  @keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  /* 卡片入场动画 */
+  .card {
+    opacity: 0; transform: translateY(30px);
+    transition: opacity 0.5s ease, transform 0.5s ease, border-color 0.2s, box-shadow 0.2s;
+  }
+  .card.visible { opacity: 1; transform: translateY(0); }
+
+  /* NEW/STREAK 徽章 */
+  .badge-new {
+    display: inline-block; padding: 2px 10px; border-radius: 12px;
+    font-size: 0.75em; font-weight: 700; color: #fff; background: #2da44e;
+    animation: badgePulse 2s ease-in-out infinite;
+  }
+  .badge-streak {
+    display: inline-block; padding: 2px 10px; border-radius: 12px;
+    font-size: 0.75em; font-weight: 700; color: #fff; background: #8250df;
+  }
+  .badge-recurring {
+    display: inline-block; padding: 2px 10px; border-radius: 12px;
+    font-size: 0.75em; font-weight: 700; color: #656d76; background: #eaeef2;
+  }
+  @keyframes badgePulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(45, 164, 78, 0.4); }
+    50% { box-shadow: 0 0 0 6px rgba(45, 164, 78, 0); }
+  }
+
+  /* 评分进度条 */
+  .score-row { margin-bottom: 14px; }
+  .score-label { font-size: 0.9em; font-weight: 600; color: #24292f; margin-bottom: 4px; }
+  .score-num { font-weight: 700; color: #0969da; margin-left: 4px; }
+  .score-bar {
+    height: 8px; background: #eaeef2; border-radius: 4px; overflow: hidden;
+    margin-bottom: 2px;
+  }
+  .score-bar-fill {
+    height: 100%; border-radius: 4px;
+    transition: width 1s ease;
+  }
+  .score-reason {
+    font-size: 0.82em; color: #656d76;
+  }
+
+  /* 今日 Star 高亮 */
+  .today-stars-count {
+    font-weight: 700; color: #0969da; font-size: 0.9em;
+  }
+
+  @media (max-width: 768px) {
+    #sidebar { display: none; }
+    .main-content { margin-left: 0; padding: 20px 12px; }
+    .card { padding: 20px; }
+    .pros-cons { grid-template-columns: 1fr; }
+    .header h1 { font-size: 1.5em; }
+  }
+</style>
+</head>
+<body>
+<nav id="sidebar">
+  <div class="toc-title">📋 今日目录</div>
+      <a href="#card-1"><span class="toc-rank">#1</span>tinyhumansai/openhuman<span class="toc-dot-new"></span></a>
+      <a href="#card-2"><span class="toc-rank">#2</span>obra/superpowers<span class="toc-dot-new"></span></a>
+      <a href="#card-3"><span class="toc-rank">#3</span>K-Dense-AI/scientific-agent-skills<span class="toc-dot-new"></span></a>
+      <a href="#card-4"><span class="toc-rank">#4</span>supertone-inc/supertonic<span class="toc-dot-new"></span></a>
+      <a href="#card-5"><span class="toc-rank">#5</span>ruvnet/RuView<span class="toc-dot-new"></span></a>
+      <a href="#card-6"><span class="toc-rank">#6</span>influxdata/telegraf<span class="toc-dot-new"></span></a>
+      <a href="#card-7"><span class="toc-rank">#7</span>anthropics/skills<span class="toc-dot-new"></span></a>
+      <a href="#card-8"><span class="toc-rank">#8</span>czlonkowski/n8n-mcp</a>
+      <a href="#card-9"><span class="toc-rank">#9</span>NVIDIA-AI-Blueprints/video-search-and-summarization<span class="toc-dot-new"></span></a>
+      <a href="#card-10"><span class="toc-rank">#10</span>oven-sh/bun<span class="toc-dot-new"></span></a>
+</nav>
+<div class="main-content">
+<div class="container">
+  <div class="header">
+    <h1>🔥 GitHub Trending 日报</h1>
+    <div class="date">2026-05-16</div>
+    <div class="summary">
+      本日报由 AI 自动生成，每日精选 GitHub Trending Top 10 项目进行深度解读，
+      涵盖项目简介、适合人群、PM推荐评估、思维发散与犀利锐评，助你快速把握技术脉搏。
+    </div>
+  </div>
+  <div class="trend-summary">
+    <h2>🌊 今日技术风向</h2>
+    <p>今日技术风向聚焦于AI Agent的“工具化”与“实体化”落地，以及边缘智能的隐私与性能革命。最值得关注的是，AI正从单一聊天界面转向可执行复杂任务的技能框架，Shell脚本和标准化工具库成为赋予Agent“手脚”的关键，这标志着AI开发进入“技能即服务”的新阶段。同时，边缘端推理（如本地TTS）和基于WiFi信号的非视觉感知技术崛起，彻底颠覆了对云端的依赖，并解决了隐私和成本痛点。对产品经理和技术决策者而言，应优先投资于能封装专业领域知识的Agent技能模块，并关注不依赖摄像头的环境感知方案，这将是构建下一代智能应用和差异化产品的核心护城河。</p>
+  </div>
+  
+<div class="card" id="card-1">
+  <div class="card-header">
+    <span class="rank rank-1">#1</span>
+    <span class="repo-name">
+      <a href="https://github.com/tinyhumansai/openhuman" target="_blank">tinyhumansai/openhuman</a>
+      <span class="badge-new">NEW</span>
+    </span>
+    <div class="meta">
+      <span><span class="lang-dot" style="background:#dea584"></span> Rust</span>
+      <span class="today-stars-count" data-count="1271">⭐ 1,271 stars today</span>
+    </div>
+  </div>
+  <div class="desc">Your Personal AI super intelligence. Private, Simple and extremely powerful.</div>
+  <div class="section"></div>
+<div class="section"><h3>📖 项目简介</h3><p style="color:#8b949e;font-size:0.93em;">OpenHuman是一个基于Rust构建的个人AI超级智能体，主打“隐私、简单、极强性能”三位一体。它本质上是一个轻量级、可本地部署的AI推理与任务编排框架，旨在让用户在不依赖云端API的情况下，获得类似GPT-4级别的智能助手体验，同时彻底掌控数据主权。</p></div>
+<div class="section"><h3>🎯 适合人群</h3><ul><li>对数据隐私敏感的个人开发者或极客用户</li>
+<li>需要离线或边缘端部署AI能力的SaaS产品经理</li>
+<li>厌倦了OpenAI、Google等巨头API锁定的小型创业团队</li>
+<li>正在寻找Rust生态中AI基础设施组件的后端架构师</li>
+<li>希望将AI能力嵌入本地硬件（如树莓派、工控机）的IoT领域从业者</li></ul></div>
+<div class="section"><h3>💡 思维发散</h3><ul><li><strong>本地化“AI管家”订阅服务</strong>：将OpenHuman打包成针对家庭或小型办公场景的硬件盒子（如NUC+预装系统），提供“永不联网、永远在线”的语音/文本AI助手。竞品是Amazon Echo/Alexa，但OpenHuman的绝对隐私和可定制性（比如接入本地智能家居协议）是差异化卖点。商业化价值：硬件溢价+年度订阅（模型更新+技能包），客单价可达300-800美元。</li>
+<li><strong>企业数据沙盒AI工具</strong>：面向金融、医疗等强合规行业，销售“私有化部署+行业知识库预训练”的解决方案。竞品是云端的Copilot Enterprise，但OpenHuman可承诺数据不出域。商业化价值：按席位/年费收费，客单价高（5000-20000美元/年），但销售周期长。</li>
+<li><strong>开发者AI中间件市场</strong>：将OpenHuman的核心推理引擎做成可插拔的Rust库或Docker镜像，在Hugging Face或GitHub上提供“一键集成”付费插件（如增强型RAG、多模态扩展）。商业化价值：基础版免费引流，企业版按调用量或功能解锁付费，类似Supabase的商业模式。</li>
+<li><strong>与边缘计算平台组合</strong>：将OpenHuman与Node-RED、Home Assistant等低代码平台整合，打造“AI驱动的自动化工作流”。例如：摄像头捕获异常后，本地AI直接生成描述并触发告警。竞品是云端AI+IFTTT，但延迟和隐私优势明显。商业化价值：与硬件厂商分成或提供白标方案。</li></ul></div>
+<div class="section"><h3>📊 推荐评估</h3><div class="score-row">
+  <div class="score-label">💰 商业化潜力 <span class="score-num">7/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#0969da;width:0" data-width="70%"></div></div>
+  <div class="score-reason">隐私和本地化是硬需求，但需找到愿意为“不联网”付费的垂直场景。</div>
+</div>
+<div class="score-row">
+  <div class="score-label">🔧 落地难度 <span class="score-num">6/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#cf222e;width:0" data-width="60%"></div></div>
+  <div class="score-reason">Rust生态的AI工具链还在早期，模型兼容性和社区支持是瓶颈。</div>
+</div>
+<div class="score-row">
+  <div class="score-label">⭐ 值得关注度 <span class="score-num">9/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#8250df;width:0" data-width="90%"></div></div>
+  <div class="score-reason">方向正确（边缘AI+隐私），Rust性能优势突出，且今日增长势头凶猛。</div>
+</div></div>
+<div class="section"><h3>⚔️ 锐评</h3>
+<div class="pros-cons">
+  <div class="pros"><h4>✅ 优点</h4><ul><li>用Rust重写AI推理栈，在性能和资源占用上对Python方案是降维打击，尤其适合边缘设备。</li>
+<li>真正将“隐私”从口号变成架构设计（本地模型+零数据外传），比那些号称隐私但实际依赖云端的项目诚实得多。</li>
+<li>项目描述中的“简单”并非空话：对比Ollama、LocalAI等同类项目，OpenHuman的API设计更直觉，文档清晰，降低了非Rust开发者的上手门槛。</li></ul></div>
+  <div class="cons"><h4>❌ 缺点</h4><ul><li>目前支持的模型数量和精度远不及Ollama或llama.cpp，生态成熟度是最大短板。</li>
+<li>“超级智能体”的定位含糊——它更像一个推理引擎+基础任务编排，离真正的自主智能体（如AutoGPT）还有距离，容易让用户产生过高预期。</li>
+<li>Rust的编译和依赖管理对非Rust开发者仍是门槛，且跨平台（尤其是Windows）的二进制分发体验需要优化。</li></ul></div>
+</div>
+<div class="verdict">💬 用Rust给AI套上“隐私金钟罩”，性能猛如虎，但想当超级智能体还差一个生态的“羽翼丰满”。</div></div>
+</div>
+<div class="card" id="card-2">
+  <div class="card-header">
+    <span class="rank rank-2">#2</span>
+    <span class="repo-name">
+      <a href="https://github.com/obra/superpowers" target="_blank">obra/superpowers</a>
+      <span class="badge-new">NEW</span>
+    </span>
+    <div class="meta">
+      <span><span class="lang-dot" style="background:#8b949e"></span> Shell</span>
+      <span class="today-stars-count" data-count="1648">⭐ 1,648 stars today</span>
+    </div>
+  </div>
+  <div class="desc">An agentic skills framework &amp; software development methodology that works.</div>
+  <div class="section">好的，各位产品经理和技术决策者们，今天我们来聊聊一个名字很唬人，但可能真有点东西的项目——`obra/superpowers`。它号称是一个“能工作的智能体技能框架和软件开发方法论”。在AI Agent概念漫天飞的当下，这到底是又一个PPT项目，还是真的能赋予我们“超能力”？下面是我的深度解读。</div>
+<div class="section"><h3>📖 项目简介</h3><p style="color:#8b949e;font-size:0.93em;">这是一个基于Shell脚本构建的AI Agent技能框架和软件开发方法论。它的核心思想是，通过定义一套标准化的、可组合的Shell命令和交互协议，让AI（尤其是大语言模型）能够像使用“工具库”一样，稳定、可靠地执行复杂的软件开发任务，而不是像现在这样依赖长上下文和模糊的指令。简而言之，它试图给AI Agent装上“手脚”，并教它如何“干活”。</p></div>
+<div class="section"><h3>🎯 适合人群</h3><ul><li>正在探索AI辅助编码，但对现有Copilot、Cody等工具“黑盒”行为不满的技术决策者。</li>
+<li>需要将AI深度集成到CI/CD、自动化测试、代码审查等开发流程中的DevOps工程师。</li>
+<li>研究AI Agent框架，特别是追求“确定性”和“可解释性”的AI研究员和高级开发者。</li>
+<li>厌倦了在Prompt里反复描述开发环境细节，希望AI能“理解”并“操作”本地项目的全栈开发者。</li>
+<li>对“方法学”有执念，认为软件开发流程本身可以被AI解构和优化的产品经理。</li></ul></div>
+<div class="section"><h3>💡 思维发散</h3><ul><li><strong>AI驱动的“代码审查机器人”即服务</strong>：将<code>superpowers</code>框架包装成一个服务，专门用于代码审查。它不只是“找bug”，而是能理解项目架构、运行测试、检查代码风格，甚至直接生成修改建议的PR。<strong>商业化价值</strong>：高。企业级代码审查是刚需，现有工具（如SonarQube）静态分析，无法理解业务逻辑。如果<code>superpowers</code>能做到“动态”+“语义”审查，可定价为每千行代码或每仓库月费。</li>
+<li><strong>“一键”环境配置与项目脚手架</strong>：利用<code>superpowers</code>的Shell脚本能力，构建一个“项目初始化器”。用户说出需求（如“一个用FastAPI的博客系统，带PostgreSQL和Redis”），AI就能自动生成完整的项目结构、配置文件、Docker Compose，甚至初始化数据库。<strong>商业化价值</strong>：中高。面向中小团队和独立开发者，可与Cloud IDE（如GitPod）结合，提供“订阅制”模板服务。竞品是<code>create-react-app</code>等，但AI让模板从“静态”变为“按需生成”，差距明显。</li>
+<li><strong>可审计的AI开发流程管理平台</strong>：将<code>superpowers</code>的方法论嵌入到项目管理工具（如Jira、Linear）中。每个用户故事（User Story）的完成，都对应一套可执行的Shell脚本序列。AI执行完任务后，会生成一份“操作日志”（谁、在何时、执行了什么命令、输出了什么）。<strong>商业化价值</strong>：高。解决了“AI生成代码不可信、不可追溯”的痛点。对于金融、医疗等强监管行业是杀手级应用。竞品是现有AI代码工具，但它们在审计和流程控制上几乎是空白。</li>
+<li><strong>与“低代码平台”结合</strong>：用<code>superpowers</code>作为低代码平台的后端“执行引擎”。用户通过拖拽搭建UI，而背后复杂的逻辑、API调用、数据处理，全部由AI通过调用<code>superpowers</code>的脚本库自动生成和执行。<strong>商业化价值</strong>：极高。这能极大扩展低代码平台的能力边界，使其能处理更复杂的后端逻辑。竞品（如Retool、Appsmith）强在前端，后端能力依赖手动开发。这是降维打击。</li></ul></div>
+<div class="section"><h3>📊 推荐评估</h3><div class="score-row">
+  <div class="score-label">💰 商业化潜力 <span class="score-num">7/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#0969da;width:0" data-width="70%"></div></div>
+  <div class="score-reason">底层方法论有价值，但直接卖“框架”难，需要包装成SaaS服务才能变现。</div>
+</div>
+<div class="score-row">
+  <div class="score-label">🔧 落地难度 <span class="score-num">8/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#cf222e;width:0" data-width="80%"></div></div>
+  <div class="score-reason">需要使用者具备较高的Shell脚本能力和对AI Agent的理解，上手门槛不低，且与现有IDE生态融合困难。</div>
+</div>
+<div class="score-row">
+  <div class="score-label">⭐ 值得关注度 <span class="score-num">9/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#8250df;width:0" data-width="90%"></div></div>
+  <div class="score-reason">代表了一种“让AI更可靠”的有趣思路，对技术决策者有启发，值得密切跟踪。</div>
+</div></div>
+<div class="section"><h3>⚔️ 锐评</h3>
+<div class="pros-cons">
+  <div class="pros"><h4>✅ 优点</h4><ul><li><strong>思路正确</strong>：它不再试图让AI成为“全能神”，而是通过定义标准协议（Shell命令），将AI变成“可被编排的工具”，这大大提升了AI行为的稳定性和可审计性。</li>
+<li><strong>方法论清晰</strong>：将“Prompt engineering”从玄学变成了工程。它鼓励开发者将任务分解为原子化的、可测试的Shell命令，这本身就是一种良好的编程实践。</li>
+<li><strong>摆脱GUI依赖</strong>：全部基于Shell，意味着它可以无缝集成到任何Unix-like环境中，非常适合自动化、CI/CD等后端场景。</li></ul></div>
+  <div class="cons"><h4>❌ 缺点</h4><ul><li><strong>伪创新与真硬伤</strong>：所谓的“技能框架”本质上就是一套Shell脚本库。这个想法并不新鲜（想想<code>make</code>、<code>npm scripts</code>）。它的“创新”在于让AI来调用，但Shell脚本本身就是脆弱、难以调试的，一个错误参数就能让整个流程崩溃。</li>
+<li><strong>生态与体验灾难</strong>：强迫开发者在终端里和AI对话，是对现代IDE体验的严重倒退。除非它能生成并自动打开VSCode，否则注定只能成为少数极客的工具。它的“方法论”太重了，不符合大多数开发者的“快糙猛”习惯。</li>
+<li><strong>安全风险巨大</strong>：赋予AI任意执行Shell脚本的能力，是一个巨大的安全黑洞。一个恶意的Prompt或一个有漏洞的脚本，就能让你的电脑变砖。项目必须提供极其严格的沙箱机制，但目前看来没有。</li></ul></div>
+</div>
+<div class="verdict">💬  它试图用最“复古”的Shell脚本，解决AI编程中最“现代”的可靠性问题，思路很棒，但这更像是一份给AI工程师看的“哲学论文”，而非一个能直接上手的“工具箱”。</div></div>
+</div>
+<div class="card" id="card-3">
+  <div class="card-header">
+    <span class="rank rank-3">#3</span>
+    <span class="repo-name">
+      <a href="https://github.com/K-Dense-AI/scientific-agent-skills" target="_blank">K-Dense-AI/scientific-agent-skills</a>
+      <span class="badge-new">NEW</span>
+    </span>
+    <div class="meta">
+      <span><span class="lang-dot" style="background:#3572A5"></span> Python</span>
+      <span class="today-stars-count" data-count="646">⭐ 646 stars today</span>
+    </div>
+  </div>
+  <div class="desc">A set of ready to use Agent Skills for research, science, engineering, analysis, finance and writing.</div>
+  <div class="section"></div>
+<div class="section"><h3>📖 项目简介</h3><p style="color:#8b949e;font-size:0.93em;">这是一个为AI Agent（智能代理）提供“即插即用”技能包的Python库，覆盖研究、科学、工程、金融和写作等专业领域。核心价值在于将复杂的专业工具（如文献检索、数据可视化、LaTeX撰写、金融计算等）封装成标准化的Agent技能模块，让开发者无需从零构建，即可快速赋予AI处理复杂专业任务的能力。</p></div>
+<div class="section"><h3>🎯 适合人群</h3><ul><li>需要快速搭建科研辅助AI工具的产品经理与技术决策者</li>
+<li>正在开发垂直领域AI Agent（如学术助手、金融分析AI）的工程师</li>
+<li>希望将AI集成到专业工作流中的科研人员或分析师</li>
+<li>关注AI Agent工具生态、寻找复用组件的初创团队</li></ul></div>
+<div class="section"><h3>💡 思维发散</h3><ul><li><strong>垂直科研AI助手SaaS</strong>：基于此项目，可构建“论文全生命周期管理”产品。从文献检索、数据提取、图表生成到论文格式化，用户只需上传PDF或描述任务，AI自动完成。<strong>商业化价值</strong>：面向高校、科研机构，按项目或订阅收费。竞品如Scite.ai、Elicit，但差距在于它们更侧重文献检索，而此项目可整合实验数据分析和撰写，形成闭环。</li>
+<li><strong>金融分析师Copilot</strong>：利用其金融分析技能，开发一款“财报解读+实时数据可视化”工具。输入公司代码，自动生成财务摘要、对比图表和风险提示。<strong>商业化价值</strong>：面向中小投资者或分析师，月费模式。现有竞品如Bloomberg Terminal（太贵）、Yahoo Finance（无AI），此方案可提供低成本、高专业度的替代。</li>
+<li><strong>工程文档自动生成平台</strong>：结合工程与写作技能，让AI从代码库或设计图自动生成技术文档、API手册。<strong>商业化价值</strong>：面向软件开发团队，按文档量和用户数付费。竞品如Notion AI（通用）、GitBook（无深度工程技能），此项目可提供更专业的LaTeX、数学公式和图表支持。</li>
+<li><strong>与RAG（检索增强生成）组合</strong>：将科学技能包与向量数据库（如Pinecone、Weaviate）结合，为Agent提供长程记忆和领域知识库。例如“学术论文检索+实验设计建议” Agent，用户提问“关于CRISPR的最新进展”，Agent自动检索论文并生成实验建议。<strong>商业化价值</strong>：面向生物医药公司，定制化部署费。竞品如Perplexity Pro，但差距在于专注细分领域。</li></ul></div>
+<div class="section"><h3>📊 推荐评估</h3><div class="score-row">
+  <div class="score-label">💰 商业化潜力 <span class="score-num">8/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#0969da;width:0" data-width="80%"></div></div>
+  <div class="score-reason">覆盖多个高价值垂直领域，且技能模块化利于快速定制，但需找到精准付费场景。</div>
+</div>
+<div class="score-row">
+  <div class="score-label">🔧 落地难度 <span class="score-num">6/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#cf222e;width:0" data-width="60%"></div></div>
+  <div class="score-reason">技能封装降低了开发门槛，但需对接真实API（如文献数据库、金融数据源），数据合规与成本是挑战。</div>
+</div>
+<div class="score-row">
+  <div class="score-label">⭐ 值得关注度 <span class="score-num">9/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#8250df;width:0" data-width="90%"></div></div>
+  <div class="score-reason">代表Agent工具从“玩具”向“专业工具”演进的关键趋势，适合跟踪并复制到垂直行业。</div>
+</div></div>
+<div class="section"><h3>⚔️ 锐评</h3>
+<div class="pros-cons">
+  <div class="pros"><h4>✅ 优点</h4><ul><li><strong>模块化设计优秀</strong>：将复杂专业任务拆解为可复用技能，极大降低Agent开发成本，符合行业“Agent组装”趋势。</li>
+<li><strong>覆盖领域广且实用</strong>：从科学计算到金融分析，技能包切中了真实工作流痛点，而非泛泛的“聊天功能”。</li>
+<li><strong>开箱即用文档清晰</strong>：GitHub上提供了示例和API说明，降低了上手门槛，有利于社区贡献和生态扩展。</li></ul></div>
+  <div class="cons"><h4>❌ 缺点</h4><ul><li><strong>技能深度有限</strong>：目前技能包多为基础操作（如绘图、格式化），对于需要领域深度推理的任务（如实验设计优化、复杂金融建模）支撑不足，可能导致用户期望落空。</li>
+<li><strong>依赖第三方API</strong>：部分技能（如文献检索）依赖外部服务（Semantic Scholar、arXiv），若这些API变更或收费，项目鲁棒性存疑。</li>
+<li><strong>缺乏商业闭环示例</strong>：项目仅提供技术组件，没有展示如何通过订阅、API调用来盈利，对创业者而言需要自行设计商业模式。</li></ul></div>
+</div>
+<div class="verdict">💬 一个精致的“Agent技能乐高包”，但想靠它赚钱，你还得自己搭建游乐场和卖门票。</div></div>
+</div>
+<div class="card" id="card-4">
+  <div class="card-header">
+    <span class="rank rank-other">#4</span>
+    <span class="repo-name">
+      <a href="https://github.com/supertone-inc/supertonic" target="_blank">supertone-inc/supertonic</a>
+      <span class="badge-new">NEW</span>
+    </span>
+    <div class="meta">
+      <span><span class="lang-dot" style="background:#F05138"></span> Swift</span>
+      <span class="today-stars-count" data-count="719">⭐ 719 stars today</span>
+    </div>
+  </div>
+  <div class="desc">Lightning-Fast, On-Device, Multilingual TTS — running natively via ONNX.</div>
+  <div class="section"></div>
+<div class="section"><h3>📖 项目简介</h3><p style="color:#8b949e;font-size:0.93em;">Supertonic 是一个基于 ONNX 运行、在设备端（On-Device）实现超快多语言文本转语音（TTS）的 Swift 原生库。它解决了传统云端 TTS 延迟高、隐私风险大、依赖网络的问题，让开发者能在 iOS/macOS 应用中直接集成实时、多语言的语音合成能力。</p></div>
+<div class="section"><h3>🎯 适合人群</h3><ul><li>iOS/macOS 原生应用开发者，特别是需要集成语音交互的产品</li>
+<li>对隐私敏感的产品经理（如医疗、金融、儿童应用），希望 TTS 完全离线运行</li>
+<li>需要低延迟、多语言语音反馈的 AI 助手或无障碍功能开发者</li>
+<li>探索边缘计算与端侧 AI 落地的技术决策者</li></ul></div>
+<div class="section"><h3>💡 思维发散</h3><ul><li><strong>AI 语音笔记应用</strong>：结合本地 TTS 和语音识别，打造完全离线的“语音转文字+文字转语音”双向笔记工具。竞品如 Otter.ai 依赖云端，Supertonic 能实现零网络成本、无隐私泄露的本地闭环。商业化价值：可针对企业安全场景（如法律、医疗）推出订阅制。</li>
+<li><strong>儿童有声读物交互平台</strong>：利用多语言 TTS 实时生成不同角色的语音，配合动画或互动游戏。现有竞品如 Epic! 是静态录音，Supertonic 允许动态生成个性语音。商业化：按生成字数或角色包付费。</li>
+<li><strong>车载语音助手增强</strong>：在车机系统（iOS CarPlay）中集成，提供离线导航播报、音乐推荐语音反馈。竞品如 Siri 依赖苹果云端，Supertonic 可定制品牌语音且无网络延迟。商业化：向车企提供 SDK 授权费。</li>
+<li><strong>实时多语言直播翻译字幕配音</strong>：将直播内容通过 TTS 转为多种语言语音，配合字幕同步输出。竞品如 Google 翻译延迟高，Supertonic 端侧处理更快。商业化：面向直播平台或会议软件提供增值服务。</li></ul></div>
+<div class="section"><h3>📊 推荐评估</h3><div class="score-row">
+  <div class="score-label">💰 商业化潜力 <span class="score-num">7/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#0969da;width:0" data-width="70%"></div></div>
+  <div class="score-reason">端侧 TTS 在隐私合规和低延迟场景有刚需，但需避开苹果自带 TTS 的免费替代。</div>
+</div>
+<div class="score-row">
+  <div class="score-label">🔧 落地难度 <span class="score-num">6/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#cf222e;width:0" data-width="60%"></div></div>
+  <div class="score-reason">基于 ONNX 和 Swift 生态，集成门槛中等，但需优化模型大小和语音自然度。</div>
+</div>
+<div class="score-row">
+  <div class="score-label">⭐ 值得关注度 <span class="score-num">8/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#8250df;width:0" data-width="80%"></div></div>
+  <div class="score-reason">代表端侧 AI 语音合成的重要突破，对移动端语音交互生态有催化剂作用。</div>
+</div></div>
+<div class="section"><h3>⚔️ 锐评</h3>
+<div class="pros-cons">
+  <div class="pros"><h4>✅ 优点</h4><ul><li><strong>性能炸裂</strong>：宣称“闪电般快”，ONNX 端侧推理省去网络延迟，适合实时交互场景。</li>
+<li><strong>隐私友好</strong>：完全离线运行，无数据外传风险，自然符合 GDPR、HIPAA 等合规要求。</li>
+<li><strong>多语言支持</strong>：开箱即用的多语言能力，降低了全球化产品开发成本。</li></ul></div>
+  <div class="cons"><h4>❌ 缺点</h4><ul><li><strong>语音质量存疑</strong>：端侧模型通常牺牲自然度换取速度，与云端大模型（如 ElevenLabs）相比可能显得机械。</li>
+<li><strong>生态依赖</strong>：仅支持 Swift/Apple 平台，安卓和 Web 开发者无法直接使用，限制了跨平台推广。</li>
+<li><strong>维护风险</strong>：开源项目依赖社区和商业公司持续投入，若 Supertonic 公司转向闭源，项目可能停滞。</li></ul></div>
+</div>
+<div class="verdict">💬 端侧 TTS 的 Swift 利器，但别指望它能取代云端老婆，先让 iPhone 自己说话再说。</div></div>
+</div>
+<div class="card" id="card-5">
+  <div class="card-header">
+    <span class="rank rank-other">#5</span>
+    <span class="repo-name">
+      <a href="https://github.com/ruvnet/RuView" target="_blank">ruvnet/RuView</a>
+      <span class="badge-new">NEW</span>
+    </span>
+    <div class="meta">
+      <span><span class="lang-dot" style="background:#dea584"></span> Rust</span>
+      <span class="today-stars-count" data-count="1859">⭐ 1,859 stars today</span>
+    </div>
+  </div>
+  <div class="desc">π RuView turns commodity WiFi signals into real-time spatial intelligence, vital sign monitoring, and presence detection — all without a single pixel of video.</div>
+  <div class="section"></div>
+<div class="section"><h3>📖 项目简介</h3><p style="color:#8b949e;font-size:0.93em;">RuView 是一个基于 Rust 构建的创新型感知平台，它利用商用 WiFi 信号的细微变化（如信道状态信息 CSI），实现实时空间感知、生命体征监测（呼吸、心率）和人员存在检测。其核心价值在于完全无需摄像头或任何可穿戴设备，仅通过分析 WiFi 信号的干扰即可获取环境智能，解决了传统视觉监控的隐私泄露和高昂部署成本问题。</p></div>
+<div class="section"><h3>🎯 适合人群</h3><ul><li>智能家居/楼宇自动化产品经理：寻找无摄像头、高隐私的室内人员感知方案</li>
+<li>医疗健康科技决策者：探索非接触式、低成本的远程监护技术（如养老院、婴儿监护）</li>
+<li>IoT 与边缘计算架构师：需要低功耗、低带宽的实时环境感知接口</li>
+<li>隐私合规法律与风控负责人：评估替代视频监控的合规技术选型</li>
+<li>前沿交互设计师：构思手势控制、无接触式 UI 的下一代交互范式</li></ul></div>
+<div class="section"><h3>💡 思维发散</h3><ul><li><strong>“WiFi 呼吸监测”订阅服务</strong>：面向独居老人或婴幼儿的家庭，提供基于现有路由器的呼吸/心率监测 SaaS。用户无需购买硬件，只需在路由器上刷固件或插一个兼容 USB 接收器。竞品如 Google Soli（毫米波雷达）需要专用芯片，成本高；而 RuView 直接复用 WiFi 基础设施，可大幅降低获客成本。商业化潜力：8/10（针对 B2C 健康市场，需解决医疗认证壁垒）。</li>
+<li><strong>“隐形防盗”企业级空间感知</strong>：结合 RuView 的“存在检测”与智能门锁、灯光系统，构建“人走自动锁门关灯”的办公场景。竞品如基于 PIR 传感器的方案易被遮挡或误判（宠物/热源干扰），RuView 的 WiFi 穿透性更强，且能区分静坐与无人状态。商业化潜力：9/10（B2B 节能管理，ROI 清晰，可集成到现有楼宇系统）。</li>
+<li><strong>“无屏幕”零售互动广告牌</strong>：当人进入 WiFi 覆盖区域时，RuView 触发广告屏显示定向内容（如根据停留时长判断兴趣度）。竞品如蓝牙 Beacon（需 App 配合，转化率低），RuView 无需用户任何主动操作，可精准感知“路过 vs 驻足”，广告位溢价空间大。商业化潜力：7/10（依赖广告主接受新传感器，需证明 ROI 高于传统摄像头）。</li>
+<li><strong>与“数字孪生”引擎组合</strong>：将 RuView 输出的实时空间地图（人物位置、移动轨迹）接入 Unity/Unreal 引擎，生成动态 3D 虚拟空间。可用于元宇宙办公、远程协作的“物理-数字”映射。竞品如利用 UWB 定位（需佩戴标签），RuView 完全无感。商业化潜力：6/10（早期市场小，但技术护城河深，适合高客单价的工业仿真场景）。</li></ul></div>
+<div class="section"><h3>📊 推荐评估</h3><div class="score-row">
+  <div class="score-label">💰 商业化潜力 <span class="score-num">8/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#0969da;width:0" data-width="80%"></div></div>
+  <div class="score-reason">直接复用 WiFi 基础设施，成本优势碾压专用传感器方案，隐私合规红利巨大。</div>
+</div>
+<div class="score-row">
+  <div class="score-label">🔧 落地难度 <span class="score-num">7/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#cf222e;width:0" data-width="70%"></div></div>
+  <div class="score-reason">核心挑战在于 WiFi 信号易受环境干扰（墙壁、多径效应），需强信号处理算法和硬件校准，且需说服用户刷固件或购买专用接收器。</div>
+</div>
+<div class="score-row">
+  <div class="score-label">⭐ 值得关注度 <span class="score-num">9/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#8250df;width:0" data-width="90%"></div></div>
+  <div class="score-reason">将“WiFi 感知”从学术论文推向实用，Rust 的高性能特性解决了实时性瓶颈，是隐私计算与 IoT 的交叉点，值得产品经理和技术决策者深度追踪。</div>
+</div></div>
+<div class="section"><h3>⚔️ 锐评</h3>
+<div class="pros-cons">
+  <div class="pros"><h4>✅ 优点</h4><ul><li><strong>隐私友好</strong>：彻底摆脱摄像头，规避了 GDPR/个保法下的视频监控合规风险，尤其适合卧室、浴室等敏感场景。</li>
+<li><strong>基础设施复用</strong>：利用无处不在的 WiFi 信号，无需额外部署专用硬件（如雷达或 UWB），部署成本接近零。</li>
+<li><strong>实时性与鲁棒性</strong>：Rust 的零成本抽象和内存安全特性，保证了低延迟的 CSI 信号处理，在实验室环境下表现稳定。</li></ul></div>
+  <div class="cons"><h4>❌ 缺点</h4><ul><li><strong>环境敏感度极高</strong>：信号干扰（如微波炉、蓝牙设备、人员走动）会严重降低精度，在家庭真实场景中误报率可能较高，实用性存疑。</li>
+<li><strong>硬件兼容性瓶颈</strong>：并非所有商用路由器都开放 CSI 数据接口，用户可能需要购买特定型号或刷 OpenWrt，推广门槛高。</li>
+<li><strong>缺乏杀手级场景</strong>：目前演示多为“感知存在”，但如何转化为用户愿意付费的“价值闭环”（如自动调节空调、健康报警）尚未清晰，技术酷炫但商业化路径模糊。</li></ul></div>
+</div>
+<div class="verdict">💬 RuView 用 WiFi 信号打了一场漂亮的“隐私战”，但若想从实验室走进千家万户，还得先解决“厨房里微波炉一开就误报”这种接地气的难题。</div></div>
+</div>
+<div class="card" id="card-6">
+  <div class="card-header">
+    <span class="rank rank-other">#6</span>
+    <span class="repo-name">
+      <a href="https://github.com/influxdata/telegraf" target="_blank">influxdata/telegraf</a>
+      <span class="badge-new">NEW</span>
+    </span>
+    <div class="meta">
+      <span><span class="lang-dot" style="background:#00ADD8"></span> Go</span>
+      <span class="today-stars-count" data-count="212">⭐ 212 stars today</span>
+    </div>
+  </div>
+  <div class="desc">Agent for collecting, processing, aggregating, and writing metrics, logs, and other arbitrary data.</div>
+  <div class="section"></div>
+<div class="section"><h3>📖 项目简介</h3><p style="color:#8b949e;font-size:0.93em;">Telegraf 是一个由 InfluxData 开源的指标采集代理，核心功能是从各种系统、服务和第三方API中收集数据，然后进行过滤、处理、聚合，并写入到InfluxDB、Kafka、Prometheus等后端存储。它解决了“数据采集最后一公里”的碎片化问题，让你不需要为每种数据源写不同的采集脚本，而是通过插件化配置一键搞定。</p></div>
+<div class="section"><h3>🎯 适合人群</h3><ul><li>后端/运维工程师：需要统一采集服务器指标、应用性能数据，做监控告警</li>
+<li>数据工程师：需要从IoT设备、消息队列、数据库等异构源拉取时序数据，灌入数据湖或流处理管道</li>
+<li>产品经理（偏平台侧）：设计监控平台、可观测性产品，需要底层数据采集层选型</li>
+<li>创业团队CTO：快速搭建基础设施监控栈，避免重复造轮子</li>
+<li>云原生架构师：在K8s中部署，采集Pod、Service、Node的指标并集成Prometheus</li></ul></div>
+<div class="section"><h3>💡 思维发散</h3><ul><li><strong>SaaS化“零代码数据管道”</strong>：基于Telegraf的插件生态，做一款拖拽式配置的轻量ETL产品，让非技术人员也能从REST API、数据库、HTTP端点采集数据并推送到业务系统（如CRM、BI工具）。商业化价值：中小企业在没有数据工程师的情况下，能花几百美元/月完成数据同步，竞品是Fivetran（贵、重）、Airbyte（开源但配置复杂），Telegraf更轻更快，差距在于缺少UI和调度能力。</li>
+<li><strong>边缘计算设备的一键可观测性套件</strong>：将Telegraf打包成边缘网关固件，预置MQTT、Modbus、OPC UA等工业协议插件，采集工厂设备数据后直接写入云端时序数据库。商业化价值：工业互联网市场的“即插即用”产品，竞品是Siemens MindSphere（封闭、贵）、AWS IoT Greengrass（绑定云），差距在于开箱即用的监控面板和告警逻辑。</li>
+<li><strong>智能IT运维“告警预检”系统</strong>：结合Telegraf实时采集的CPU、网络、应用日志，加上机器学习异常检测模型（如Prophet或Isolation Forest），自动生成“N分钟前已有异常信号”的复盘报告。商业化价值：比传统APM（Datadog、Dynatrace）便宜一个量级，切中小型SaaS公司成本敏感的监控需求，竞品差在无原生ML集成，但Telegraf的插件式架构可低成本接入。</li>
+<li><strong>跨云成本优化数据底座</strong>：用Telegraf同时采集AWS/Azure/GCP的计费API、资源利用率指标，以及K8s Pod资源请求，输出到时序数据库做成本归属分析。商业化价值：云成本管理（FinOps）的刚需，竞品如CloudHealth、Vantage（仅SaaS，数据源封闭），Telegraf可定制采集，但需要自建分析层。</li>
+<li><strong>DevOps ChatOps Bot的数据源</strong>：将Telegraf采集的故障指标（如P99延迟&gt;500ms）通过Webhook推送到Slack/飞书机器人，并自动关联日志、调用链。商业化价值：解决告警疲劳，竞品PagerDuty、Opsgenie（贵），Telegraf可低成本实现“指标+日志+事件”联动，但缺少通知路由和升级策略。</li></ul></div>
+<div class="section"><h3>📊 推荐评估</h3><div class="score-row">
+  <div class="score-label">💰 商业化潜力 <span class="score-num">8/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#0969da;width:0" data-width="80%"></div></div>
+  <div class="score-reason">数据采集是基础设施刚需，但纯开源代理难变现，需包成PaaS或SaaS产品。</div>
+</div>
+<div class="score-row">
+  <div class="score-label">🔧 落地难度 <span class="score-num">3/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#cf222e;width:0" data-width="30%"></div></div>
+  <div class="score-reason">Go单二进制部署极简单，插件生态成熟，新手也能30分钟跑通。</div>
+</div>
+<div class="score-row">
+  <div class="score-label">⭐ 值得关注度 <span class="score-num">9/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#8250df;width:0" data-width="90%"></div></div>
+  <div class="score-reason">可观测性赛道核心组件，社区活跃，与InfluxDB、Prometheus生态深度绑定。</div>
+</div></div>
+<div class="section"><h3>⚔️ 锐评</h3>
+<div class="pros-cons">
+  <div class="pros"><h4>✅ 优点</h4><ul><li>插件生态极其丰富（300+输入/输出/处理器），覆盖从系统指标、MQTT到Kubernetes的全场景，几乎“开箱即用”。</li>
+<li>架构设计轻量且优雅：内存占用极小（通常&lt;50MB），插件间数据流通过pipeline解耦，方便定制和扩展。</li>
+<li>与InfluxDB深度集成但绝不绑架：支持输出到Prometheus、Kafka、PostgreSQL等20+后端，避免了厂商锁定风险。</li></ul></div>
+  <div class="cons"><h4>❌ 缺点</h4><ul><li>文档质量参差不齐：部分插件的配置示例过于简略，遇到边缘场景（如自定义TLS、认证）需要翻源码，对新手不友好。</li>
+<li>高并发场景下内存泄漏问题偶有出现：官方修复速度尚可，但生产环境需配合监控和自动重启策略，不适合对稳定性要求极致的金融交易系统。</li>
+<li>插件更新依赖社区，部分小众插件（如特定云厂商的计费API）长期不维护，容易产生兼容性断裂。</li></ul></div>
+</div>
+<div class="verdict">💬 Telegraf是数据采集界的瑞士军刀，但想当“神器”用，你得先忍受它偶尔掉螺丝。</div></div>
+</div>
+<div class="card" id="card-7">
+  <div class="card-header">
+    <span class="rank rank-other">#7</span>
+    <span class="repo-name">
+      <a href="https://github.com/anthropics/skills" target="_blank">anthropics/skills</a>
+      <span class="badge-new">NEW</span>
+    </span>
+    <div class="meta">
+      <span><span class="lang-dot" style="background:#3572A5"></span> Python</span>
+      <span class="today-stars-count" data-count="689">⭐ 689 stars today</span>
+    </div>
+  </div>
+  <div class="desc">Public repository for Agent Skills</div>
+  <div class="section">好的，各位产品经理和技术决策者们，今天我们解剖的不是一个普通的项目，而是一份来自AI巨头Anthropic的“能力地图”。这个项目看似简单，实则暗藏玄机。让我们直接切入正题。</div>
+<div class="section"><h3>📖 项目简介</h3><p style="color:#8b949e;font-size:0.93em;">这个项目是Anthropic官方发布的Agent技能（Skill）集合与工具库。核心是定义了一套标准化的接口和实现，让开发者能快速为AI Agent（如Claude）添加如“搜索网络”、“使用计算器”、“读取文件”等具体可执行能力。它解决的核心问题是：如何让AI Agent不再只是“聊天”，而是能可靠地调用外部工具并完成复杂任务。</p></div>
+<div class="section"><h3>🎯 适合人群</h3><ul><li>AI应用产品经理：需要快速理解当前顶级AI Agent的能力边界和扩展方式。</li>
+<li>AI Agent/机器人开发者：需要一套官方、高效的参考实现来构建或扩展自己的Agent。</li>
+<li>后端/全栈工程师：负责为AI应用集成外部API和工具链的技术负责人。</li>
+<li>技术决策者/CTO：评估Anthropic生态成熟度，决定是否将技术栈押注在Claude及其Agent能力上。</li>
+<li>开源AI爱好者：想了解行业领导者对“Agent Skills”这一概念的最佳实践定义。</li></ul></div>
+<div class="section"><h3>💡 思维发散</h3><ul><li><strong>“AI技能商店”商业模式</strong>：基于此标准，可以创建一个付费的、高质量的Agent Skills市场。用户像安装App一样购买“联网搜索技能”、“专业数据分析技能”等。<strong>商业化价值：极高。</strong> 当前竞品如OpenAI的GPTs商店，但Anthropic的Skills更底层、更标准化，可以成为企业级AI的“App Store”。差距在于生态规模，优势在于底层统一。</li>
+<li><strong>企业级AI工作流编排器</strong>：将多个<code>skills</code>组合，形成一个低代码/无代码的AI业务流程引擎。例如，一个“市场竞品分析”技能链：<code>搜索 -&gt; 网页抓取 -&gt; 文本摘要 -&gt; 结构化数据输出</code>。<strong>商业化价值：高。</strong> 直接对标Zapier、Make等自动化工具，但AI原生，理解和执行复杂指令的能力远超传统规则引擎。</li>
+<li><strong>垂直行业Agent模板</strong>：结合行业知识库，打包成“法律合同审查Agent”、“医疗报告初步分析Agent”等专业套件。<strong>商业化价值：中到高。</strong> 壁垒在于行业数据和合规性，而非技术。Anthropic提供的是引擎，产品经理需要提供的是“方向盘和座椅”。</li>
+<li><strong>与RAG（检索增强生成）技术结合</strong>：将<code>skills</code>中的“搜索”能力，从搜索公共网络扩展到搜索企业内部数据库。这能催生“企业AI知识管家”产品，让Agent能安全、可控地访问公司所有的文档和系统。<strong>商业化价值：极高。</strong> 这是所有大企业的刚需，但落地难度也大，需要处理权限、数据安全等复杂问题。</li></ul></div>
+<div class="section"><h3>📊 推荐评估</h3><div class="score-row">
+  <div class="score-label">💰 商业化潜力 <span class="score-num">9/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#0969da;width:0" data-width="90%"></div></div>
+  <div class="score-reason">定义了下一代AI应用的核心组件，变现路径清晰（市场、服务、平台）。</div>
+</div>
+<div class="score-row">
+  <div class="score-label">🔧 落地难度 <span class="score-num">6/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#cf222e;width:0" data-width="60%"></div></div>
+  <div class="score-reason">技术接口清晰，但构建真正可靠、有用的高质量Skills并集成到复杂业务流程中，工程挑战不小。</div>
+</div>
+<div class="score-row">
+  <div class="score-label">⭐ 值得关注度 <span class="score-num">10/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#8250df;width:0" data-width="100%"></div></div>
+  <div class="score-reason">这是AI Agent从“炫技”走向“实用”的关键基础设施，所有相关从业者必须关注。</div>
+</div></div>
+<div class="section"><h3>⚔️ 锐评</h3>
+<div class="pros-cons">
+  <div class="pros"><h4>✅ 优点</h4><ul><li><strong>官方背书，标准先行</strong>：这是进入Anthropic生态的官方钥匙，避免了社区项目碎片化、缺乏维护的风险，为行业树立了标杆。</li>
+<li><strong>设计优雅，抽象合理</strong>：将复杂的Agent能力抽象为可组合、可复用的<code>skills</code>，接口设计简洁，体现了顶级工程团队的思考深度。</li>
+<li><strong>降低门槛，加速创新</strong>：让开发者不用从零造轮子，可以快速构建原型，极大加速了AI Agent应用的落地速度。</li></ul></div>
+  <div class="cons"><h4>❌ 缺点</h4><ul><li><strong>生态闭环风险</strong>：目前100%绑定Anthropic及其模型，存在厂商锁定风险。如果Anthropic生态发展不及预期或API政策变动，项目价值将骤降。</li>
+<li><strong>“技能”质量参差不齐</strong>：官方提供的示例Skills可能偏简单，真正复杂的、高可靠性的Skills（如“精确操作Excel”、“调用复杂ERP系统”）需要社区或第三方投入巨大精力开发，可能成为瓶颈。</li>
+<li><strong>缺乏运行时的观测与调试</strong>：项目目前聚焦于定义和实现Skills，但Agent执行Skills时的可观测性、错误处理、调试工具是缺失的，这对生产环境至关重要。</li></ul></div>
+</div>
+<div class="verdict">💬 Anthropic的“技能”项目是AI Agent领域的“乐高积木”，但别忘了，光有积木，你还得有个能看图纸、会拼装的工程师（产品经理和开发者），以及一个能把这些积木卖出去的“乐高商店”（商业化策略）。</div></div>
+</div>
+<div class="card" id="card-8">
+  <div class="card-header">
+    <span class="rank rank-other">#8</span>
+    <span class="repo-name">
+      <a href="https://github.com/czlonkowski/n8n-mcp" target="_blank">czlonkowski/n8n-mcp</a>
+      <span class="badge-streak">连续2天</span>
+    </span>
+    <div class="meta">
+      <span><span class="lang-dot" style="background:#3178c6"></span> TypeScript</span>
+      <span class="today-stars-count" data-count="68">⭐ 68 stars today</span>
+    </div>
+  </div>
+  <div class="desc">A MCP for Claude Desktop / Claude Code / Windsurf / Cursor to build n8n workflows for you</div>
+  <div class="section"></div>
+<div class="section"><h3>📖 项目简介</h3><p style="color:#8b949e;font-size:0.93em;">这个项目是一个MCP（Model Context Protocol）服务器，专门为n8n工作流自动化平台设计。它允许Claude Desktop、Claude Code、Windsurf、Cursor等AI编程助手通过标准协议直接构建和操作n8n工作流，核心价值在于把“用自然语言描述自动化需求”变成“AI自动生成n8n工作流配置”，大幅降低n8n的使用门槛。</p></div>
+<div class="section"><h3>🎯 适合人群</h3><ul><li>使用n8n但苦于手动拖拽节点、配置参数的产品经理和运营人员</li>
+<li>依赖Claude/Cursor等AI编程助手、需要快速将自动化想法落地的开发者</li>
+<li>需要批量生成n8n工作流模板的SaaS实施顾问和自动化顾问</li>
+<li>希望将自然语言自动化能力集成到现有AI Agent工作流中的技术决策者</li></ul></div>
+<div class="section"><h3>💡 思维发散</h3><ul><li><strong>企业级“AI自动化助理”SaaS</strong>：把这个MCP封装成一个面向非技术用户的Web界面，用户用自然语言描述“当收到Gmail附件时，提取内容并写入Notion数据库”，AI直接生成并部署n8n工作流。商业化价值高，竞品如Zapier的AI Agent（仍需要用户手动确认步骤），差距在于n8n的灵活性和自托管成本优势。可与LangChain、RAG知识库组合，形成企业内部的“自动化大脑”。</li>
+<li><strong>低代码平台内的“AI工作流设计师”插件</strong>：集成到钉钉/飞书/企微的低代码模块中，用户聊天输入“每天9点从飞书表单拉取数据，生成Excel发到群聊”，AI直接创建并运行n8n工作流。商业化路径：按工作流调用次数或月度订阅收费。竞品是各平台自带的自动化能力，但n8n的节点生态远超它们。可与LLM微调服务组合，针对特定行业术语优化生成质量。</li>
+<li><strong>电商/CRM行业的“自动化迁移和同步”工具</strong>：针对Shopify、Salesforce等系统，用户描述“把旧CRM中所有客户数据映射到新系统，并设置每日增量同步”，AI自动生成包含数据转换、API调用的n8n工作流。商业化价值：解决SaaS迁移的高昂人工成本，按迁移项目收费。竞品是专业数据迁移服务商（如Fivetran），差距在于n8n的灵活性和成本优势。可与数据质量检测工具（如Great Expectations）组合，在生成时自动加入数据校验节点。</li>
+<li><strong>AI Agent的“行动层”标准接口</strong>：这个MCP本质上是让LLM拥有了执行复杂自动化任务的能力。可以进一步抽象，做成一个“AI-Automation Bridge”，让任何AI Agent（不仅是Claude）都能通过标准协议调用n8n工作流。商业化价值：成为AI应用生态的基础设施，按API调用量收费。竞品是Zapier的AI Actions（封闭生态），差距在于n8n是开源、可自托管、节点更丰富。可与AutoGPT、CrewAI等AI Agent框架组合，让Agent自动编排多步骤业务流程。</li></ul></div>
+<div class="section"><h3>📊 推荐评估</h3><div class="score-row">
+  <div class="score-label">💰 商业化潜力 <span class="score-num">8/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#0969da;width:0" data-width="80%"></div></div>
+  <div class="score-reason">解决了“AI能看懂但做不了”的最后一公里问题，n8n生态成熟，变现路径清晰（订阅、调用量、定制化）。</div>
+</div>
+<div class="score-row">
+  <div class="score-label">🔧 落地难度 <span class="score-num">6/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#cf222e;width:0" data-width="60%"></div></div>
+  <div class="score-reason">需要用户已有n8n实例，且MCP部署需一定技术基础，但项目本身实现简单。</div>
+</div>
+<div class="score-row">
+  <div class="score-label">⭐ 值得关注度 <span class="score-num">9/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#8250df;width:0" data-width="90%"></div></div>
+  <div class="score-reason">代表了AI从“对话助手”进化到“行动助手”的关键方向，是AI+自动化赛道的典型创新。</div>
+</div></div>
+<div class="section"><h3>⚔️ 锐评</h3>
+<div class="pros-cons">
+  <div class="pros"><h4>✅ 优点</h4><ul><li><strong>直击痛点</strong>：精准解决了AI编程助手“能写代码但无法直接操作n8n”的割裂问题，把“建议”变成了“执行”，效率提升显著。</li>
+<li><strong>架构优雅</strong>：基于MCP标准协议实现，未来可轻松扩展到其他支持MCP的AI工具（如Copilot、Gemini），可扩展性强。</li>
+<li><strong>降低门槛</strong>：让非技术用户也能通过自然语言构建复杂工作流，有望把n8n的受众从开发者扩展到业务人员。</li></ul></div>
+  <div class="cons"><h4>❌ 缺点</h4><ul><li><strong>依赖LLM理解能力</strong>：自然语言描述复杂业务逻辑时，LLM可能生成“看似正确但逻辑有漏洞”的工作流，缺乏可靠的验证和回滚机制，生产环境风险较高。</li>
+<li><strong>生态绑定</strong>：目前仅支持n8n，如果用户使用Make (Integromat)或自研自动化平台，则无法直接使用，适用范围受限。</li>
+<li><strong>安全隐忧</strong>：让AI直接操作工作流引擎，若提示词注入或权限配置不当，可能造成数据泄露或误操作，企业级部署需额外安全加固。</li></ul></div>
+</div>
+<div class="verdict">💬 这个项目让AI从“嘴炮王”变成了“实干家”，但让LLM直接操作自动化引擎，就像把车钥匙交给一个刚拿驾照的AI——方便是真方便，翻车也是真翻车。</div></div>
+</div>
+<div class="card" id="card-9">
+  <div class="card-header">
+    <span class="rank rank-other">#9</span>
+    <span class="repo-name">
+      <a href="https://github.com/NVIDIA-AI-Blueprints/video-search-and-summarization" target="_blank">NVIDIA-AI-Blueprints/video-search-and-summarization</a>
+      <span class="badge-new">NEW</span>
+    </span>
+    <div class="meta">
+      <span><span class="lang-dot" style="background:#3572A5"></span> Python</span>
+      <span class="today-stars-count" data-count="308">⭐ 308 stars today</span>
+    </div>
+  </div>
+  <div class="desc">Suite of reference architectures for building GPU-accelerated vision agents and AI-powered video analytics applications.</div>
+  <div class="section"></div>
+<div class="section"><h3>📖 项目简介</h3><p style="color:#8b949e;font-size:0.93em;">这是NVIDIA官方推出的视频搜索与摘要参考架构套件，旨在利用GPU加速能力构建视觉AI代理和智能视频分析应用。它提供了一整套可复用的架构模板，核心解决视频内容的高效索引、语义搜索和自动摘要生成问题，让开发者无需从零搭建底层AI管线。</p></div>
+<div class="section"><h3>🎯 适合人群</h3><ul><li>视频平台/流媒体公司的产品经理，需要快速实现内容标签化和智能搜索功能</li>
+<li>安防监控和智慧零售领域的技术决策者，需要实时视频分析能力</li>
+<li>企业知识管理团队，希望将会议录播、培训视频转化为可检索的知识资产</li>
+<li>开源AI应用开发者，寻找生产级视频分析参考实现</li>
+<li>想用GPU算力做视频NLP结合创新的创业团队</li></ul></div>
+<div class="section"><h3>💡 思维发散</h3><ul><li><strong>企业会议记录SaaS产品</strong>：将NVIDIA这套架构包装成“AI会议助理”，自动生成会议摘要、关键人物识别、行动项提取。现有竞品如Otter.ai、Fireflies.ai主要聚焦音频，视频帧信息（屏幕共享、白板内容）未被充分利用。商业化价值：企业订阅模式，单用户月费50-100美元。</li>
+<li><strong>电商直播智能分析工具</strong>：利用视频搜索能力实时识别直播中的商品、场景、话术，自动生成商品推荐标签和剪辑高光片段。竞品如ByteDance的火山引擎视频分析偏通用，缺乏电商场景优化。商业化价值：按直播时长或商品识别次数计费，月费1000-5000元起。</li>
+<li><strong>教育视频知识图谱构建器</strong>：将长课程视频自动拆解为知识点片段，生成带时间轴和关键词的思维导图，支持学生用自然语言提问“讲微积分导数在第几分钟”。竞品如Khan Academy的摘要功能较简单，缺乏深度语义搜索。商业化价值：面向教育机构SaaS，年费2-10万。</li>
+<li><strong>医疗手术视频审计系统</strong>：结合NVIDIA的GPU加速与医疗领域微调模型，自动标注手术关键步骤、异常操作，生成结构化报告。竞品如SurgicalAI等初创公司，但NVIDIA的硬件生态有天然优势。商业化价值：医院一次性部署+年维护费，50-200万。</li></ul></div>
+<div class="section"><h3>📊 推荐评估</h3><div class="score-row">
+  <div class="score-label">💰 商业化潜力 <span class="score-num">8/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#0969da;width:0" data-width="80%"></div></div>
+  <div class="score-reason">视频分析是公认的高价值赛道，NVIDIA品牌背书降低市场教育成本，但需解决行业定制化问题。</div>
+</div>
+<div class="score-row">
+  <div class="score-label">🔧 落地难度 <span class="score-num">6/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#cf222e;width:0" data-width="60%"></div></div>
+  <div class="score-reason">对GPU硬件有强依赖，中小企业部署成本高；参考架构虽降低开发难度，但仍需团队具备计算机视觉和NLP复合能力。</div>
+</div>
+<div class="score-row">
+  <div class="score-label">⭐ 值得关注度 <span class="score-num">9/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#8250df;width:0" data-width="90%"></div></div>
+  <div class="score-reason">这是NVIDIA将AI能力从“秀肌肉”转向“可落地”的关键一步，技术栈完整且紧贴实际场景。</div>
+</div></div>
+<div class="section"><h3>⚔️ 锐评</h3>
+<div class="pros-cons">
+  <div class="pros"><h4>✅ 优点</h4><ul><li>提供完整的端到端参考实现，从视频解码到语义搜索管线开箱即用，极大缩短原型验证周期。</li>
+<li>深度整合NVIDIA GPU生态（如RAPIDS、Triton），性能优势明显，适合处理海量视频流。</li>
+<li>代码结构清晰，模块化设计便于按需替换模型或数据源，对二次开发友好。</li></ul></div>
+  <div class="cons"><h4>❌ 缺点</h4><ul><li>对硬件要求苛刻，最低推荐RTX 3090以上，中小企业可能被H100/T4的隐性成本劝退。</li>
+<li>文档偏向开发者视角，缺少产品经理可理解的商业化案例和定价参考，市场落地指引不足。</li>
+<li>依赖的NVIDIA闭源组件（如NVIDIA AI Enterprise）可能带来许可证风险，开源社区版本存在功能阉割。</li></ul></div>
+</div>
+<div class="verdict">💬 NVIDIA这次终于拿出了能打的开源视频分析“乐高套件”，但想用它赚钱，你得先准备好一张足够贵的显卡和一颗足够清醒的商业头脑。</div></div>
+</div>
+<div class="card" id="card-10">
+  <div class="card-header">
+    <span class="rank rank-other">#10</span>
+    <span class="repo-name">
+      <a href="https://github.com/oven-sh/bun" target="_blank">oven-sh/bun</a>
+      <span class="badge-new">NEW</span>
+    </span>
+    <div class="meta">
+      <span><span class="lang-dot" style="background:#dea584"></span> Rust</span>
+      <span class="today-stars-count" data-count="448">⭐ 448 stars today</span>
+    </div>
+  </div>
+  <div class="desc">Incredibly fast JavaScript runtime, bundler, test runner, and package manager – all in one</div>
+  <div class="section"></div>
+<div class="section"><h3>📖 项目简介</h3><p style="color:#8b949e;font-size:0.93em;">Bun 是一个用 Rust 从头编写的 JavaScript/TypeScript 运行时，它试图在一套工具中整合运行时、打包器、测试运行器和包管理器。其核心卖点是“极致的速度”——声称比 Node.js 和 Deno 快数倍，并且兼容现有的 Node.js 生态，旨在解决 JavaScript 开发工具链碎片化和性能瓶颈问题。</p></div>
+<div class="section"><h3>🎯 适合人群</h3><ul><li>被 Node.js 的 <code>node_modules</code> 和缓慢的 <code>npm install</code> 折磨的前端/全栈开发者</li>
+<li>需要快速启动和运行 TypeScript 项目的技术决策者</li>
+<li>对工具链性能有极致要求（如 CI/CD 流水线、本地开发热重载）的团队</li>
+<li>尝试替代 Deno 或 Node.js 的早期采用者</li>
+<li>希望简化开发依赖（一个工具替代多个）的初创团队</li></ul></div>
+<div class="section"><h3>💡 思维发散</h3><ul><li><strong>“极速云函数” PaaS 服务</strong>：基于 Bun 的运行时，推出比 AWS Lambda（冷启动 &gt;100ms）快 10 倍的 Serverless 平台。商业化路径：按调用次数 + 响应时间溢价收费。竞品：Cloudflare Workers（基于 V8）、Vercel Edge Functions。差距：Bun 的原生打包器能自动优化云函数大小，降低冷启动。</li>
+<li><strong>“一键全栈” SaaS 脚手架</strong>：结合 Bun 的打包器 + 测试器 + 运行时，打造一个从开发到部署的一站式平台。用户只需写代码，平台自动处理 CI/CD、测试、部署。商业化路径：月费订阅制。竞品：Netlify、Vercel。差距：Bun 的原生集成能减少配置复杂度，提升开发者体验。</li>
+<li><strong>“闪电般”的 Monorepo 管理工具</strong>：用 Bun 的包管理器和打包器替代 Lerna + Nx 的组合。商业化路径：企业版提供权限管理、依赖审计。竞品：Turborepo、Nx。差距：Bun 的单二进制体积（&lt;50MB）和内存效率使其在大型 Monorepo 中比 Node.js 工具快 3-5 倍。</li>
+<li><strong>边缘计算 + AI 推理加速</strong>：将 Bun 与 WebAssembly 或 ONNX Runtime 结合，在边缘节点运行轻量级 AI 推理。商业化路径：按推理次数计费。竞品：Cloudflare Workers AI。差距：Bun 的低延迟和高效的 I/O 模型适合实时 AI 推理场景。</li>
+<li><strong>“降维打击”的开发者工具链 SaaS</strong>：Bun 的快速反馈循环（秒级测试、热更新）可以包装成 SaaS 工具，提供代码质量分析、性能监控。商业化路径：按项目或团队席位收费。竞品：SonarQube、Sentry。差距：Bun 的原生集成让监控埋点无感知，且能直接利用其运行时获取性能数据。</li></ul></div>
+<div class="section"><h3>📊 推荐评估</h3><div class="score-row">
+  <div class="score-label">💰 商业化潜力 <span class="score-num">8/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#0969da;width:0" data-width="80%"></div></div>
+  <div class="score-reason">工具链 SaaS 和 PaaS 变现路径清晰，且性能优势能直接转化为成本节约。</div>
+</div>
+<div class="score-row">
+  <div class="score-label">🔧 落地难度 <span class="score-num">7/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#cf222e;width:0" data-width="70%"></div></div>
+  <div class="score-reason">生态兼容性（尤其是 npm 包）和稳定性仍需打磨，企业迁移有风险。</div>
+</div>
+<div class="score-row">
+  <div class="score-label">⭐ 值得关注度 <span class="score-num">9/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#8250df;width:0" data-width="90%"></div></div>
+  <div class="score-reason">如果 Bun 能稳定迭代，它可能成为 JavaScript 开发的新标准，值得所有技术决策者提前布局。</div>
+</div></div>
+<div class="section"><h3>⚔️ 锐评</h3>
+<div class="pros-cons">
+  <div class="pros"><h4>✅ 优点</h4><ul><li><strong>性能怪兽</strong>：从包安装到脚本执行，Bun 的速度确实令人发指，尤其对大型项目，能显著提升开发者幸福感。</li>
+<li><strong>“瑞士军刀”式集成</strong>：一个二进制文件搞定运行时+打包+测试+包管理，让工具链管理成本降到冰点。</li>
+<li><strong>Rust 根基</strong>：内存安全、无 GC 停顿，这让 Bun 在长时间运行的服务中比 Node.js 更稳定。</li></ul></div>
+  <div class="cons"><h4>❌ 缺点</h4><ul><li><strong>生态兼容是“纸老虎”</strong>：虽然宣称兼容 Node.js，但实际对复杂 npm 包（如 <code>node-gyp</code> 依赖）的支持仍不稳定，迁移时会踩坑。</li>
+<li><strong>“快”不等于“好”</strong>：部分内置 API（如 <code>Bun.write</code>）的实现还不够成熟，存在边缘 case 导致 bug。</li>
+<li><strong>社区尚未形成</strong>：相比 Deno 和 Node.js，Bun 的插件、文档、最佳实践还太薄弱，遇到问题只能啃源码或等修复。</li></ul></div>
+</div>
+<div class="verdict">💬 Bun 是 JavaScript 工具链的“性能核弹”，但想用它炸掉 Node.js 的江山，还得先把兼容性的“坑”填平。</div></div>
+</div>
+  <div class="footer">
+    数据来源：<a href="https://github.com/trending" target="_blank">GitHub Trending</a> ·
+    分析引擎：DeepSeek AI · 生成时间：2026-05-16 04:27
+  </div>
+</div>
+</div>
+<script>
+(function() {
+  const links = document.querySelectorAll('#sidebar a');
+  const cards = document.querySelectorAll('.card[id]');
+
+  // 1. 卡片入场 + 评分条动画 + 侧边栏高亮
+  const sectionObserver = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        // 卡片入场
+        entry.target.classList.add('visible');
+
+        // 侧边栏高亮
+        links.forEach(function(a) {
+          a.classList.toggle('active', a.getAttribute('href') === '#' + entry.target.id);
+        });
+
+        // 评分条动画
+        var bars = entry.target.querySelectorAll('.score-bar-fill');
+        bars.forEach(function(bar) {
+          bar.style.width = bar.getAttribute('data-width');
+        });
+      }
+    });
+  }, { rootMargin: '-10% 0px -15% 0px', threshold: 0.1 });
+
+  cards.forEach(function(c) { sectionObserver.observe(c); });
+
+  // 2. Star 计数动画
+  document.querySelectorAll('.today-stars-count').forEach(function(el) {
+    var target = parseInt(el.getAttribute('data-count')) || 0;
+    var duration = 1000;
+    var start = performance.now();
+    function update(now) {
+      var elapsed = now - start;
+      var progress = Math.min(elapsed / duration, 1);
+      var eased = 1 - Math.pow(1 - progress, 3);
+      el.textContent = Math.round(target * eased).toLocaleString();
+      if (progress < 1) requestAnimationFrame(update);
+    }
+    requestAnimationFrame(update);
+  });
+})();
+</script>
+</body>
+</html>
