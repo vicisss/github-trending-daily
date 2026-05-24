@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GitHub Trending 日报 — 2026-05-24</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #ffffff; color: #24292f; font-family: -apple-system, BlinkMacSystemFont,
+      'Segoe UI', 'Noto Sans SC', 'PingFang SC', sans-serif;
+    line-height: 1.7;
+  }
+  .main-content { margin-left: 260px; padding: 40px 20px; }
+  .container { max-width: 900px; margin: 0 auto; }
+  .header {
+    text-align: center; padding: 60px 0 40px;
+    border-bottom: 1px solid #d0d7de; margin-bottom: 48px;
+  }
+  .header h1 {
+    font-size: 2.2em; background: linear-gradient(135deg, #0969da, #8250df);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .header .date { color: #656d76; margin-top: 8px; font-size: 1.05em; }
+  .header .summary {
+    margin-top: 20px; padding: 16px 24px; background: #f6f8fa;
+    border-radius: 8px; border-left: 3px solid #0969da;
+    text-align: left; color: #656d76; font-size: 0.95em;
+  }
+  .card {
+    background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 12px;
+    padding: 32px; margin-bottom: 28px;
+    transition: border-color 0.2s, box-shadow 0.2s; scroll-margin-top: 24px;
+  }
+  .card:hover { border-color: #0969da; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .card-header {
+    display: flex; align-items: center; gap: 14px; margin-bottom: 18px;
+    flex-wrap: wrap;
+  }
+  .rank {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 36px; height: 36px; border-radius: 50%;
+    font-weight: 700; font-size: 0.95em; flex-shrink: 0;
+  }
+  .rank-1 { background: #f0c419; color: #fff; }
+  .rank-2 { background: #a3b4c2; color: #fff; }
+  .rank-3 { background: #cd7f32; color: #fff; }
+  .rank-other { background: #eaeef2; color: #656d76; }
+  .repo-name { font-size: 1.15em; font-weight: 600; }
+  .repo-name a { color: #0969da; text-decoration: none; }
+  .repo-name a:hover { text-decoration: underline; }
+  .meta { display: flex; gap: 16px; flex-wrap: wrap; font-size: 0.85em; color: #656d76; }
+  .meta span { display: inline-flex; align-items: center; gap: 4px; }
+  .lang-dot {
+    display: inline-block; width: 10px; height: 10px; border-radius: 50%;
+  }
+  .desc { color: #656d76; font-size: 0.93em; margin-bottom: 20px; line-height: 1.6; }
+  .section { margin-top: 20px; }
+  .section h3 { font-size: 1em; margin-bottom: 10px; color: #24292f; }
+  .section ul { padding-left: 20px; color: #24292f; font-size: 0.93em; }
+  .section ul li { margin-bottom: 6px; }
+  .pros-cons { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .pros { background: #dafbe1; border-radius: 8px; padding: 16px; }
+  .cons { background: #ffebe9; border-radius: 8px; padding: 16px; }
+  .pros h4 { color: #1a7f37; font-size: 0.93em; margin-bottom: 8px; }
+  .cons h4 { color: #cf222e; font-size: 0.93em; margin-bottom: 8px; }
+  .pros ul, .cons ul { color: #24292f; font-size: 0.9em; }
+  .verdict { margin-top: 16px; padding: 12px 16px; background: #f3e8ff;
+    border-radius: 6px; font-style: italic; color: #8250df; font-size: 0.93em; }
+  .footer {
+    text-align: center; padding: 40px 0; color: #656d76; font-size: 0.85em;
+    border-top: 1px solid #d0d7de; margin-top: 20px;
+  }
+  .footer a { color: #0969da; }
+
+  /* 左侧目录 */
+  #sidebar {
+    position: fixed; left: 0; top: 0; width: 250px; height: 100vh;
+    background: #f6f8fa; border-right: 1px solid #d0d7de;
+    overflow-y: auto; padding: 24px 0; z-index: 100;
+  }
+  #sidebar .toc-title {
+    padding: 0 20px 16px; font-size: 0.85em; font-weight: 700;
+    color: #656d76; text-transform: uppercase; letter-spacing: 0.05em;
+    border-bottom: 1px solid #d0d7de; margin-bottom: 8px;
+  }
+  #sidebar a {
+    display: block; padding: 8px 20px; color: #656d76;
+    text-decoration: none; font-size: 0.87em;
+    border-left: 2px solid transparent; transition: all 0.15s;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  #sidebar a:hover { color: #24292f; background: #eaeef2; }
+  #sidebar a.active {
+    color: #0969da; background: #eaeef2;
+    border-left-color: #0969da;
+  }
+  #sidebar a .toc-rank {
+    display: inline-block; width: 22px; font-weight: 600; color: #0969da;
+  }
+  #sidebar a .toc-dot-new {
+    display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+    background: #ff9800; margin-left: 4px; vertical-align: middle;
+  }
+
+  /* 技术风向总结 */
+  .trend-summary {
+    background: linear-gradient(135deg, #f6f8fa 0%, #e8f0fe 50%, #f6f8fa 100%);
+    background-size: 200% 200%;
+    animation: gradientShift 8s ease infinite;
+    border: 1px solid #d0d7de; border-radius: 12px;
+    padding: 28px 32px; margin-bottom: 40px;
+    border-left: 4px solid #0969da;
+  }
+  .trend-summary h2 {
+    font-size: 1.15em; color: #0969da; margin-bottom: 12px;
+  }
+  .trend-summary p {
+    font-size: 0.95em; color: #24292f; line-height: 1.8;
+  }
+  @keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  /* 卡片入场动画 */
+  .card {
+    opacity: 0; transform: translateY(30px);
+    transition: opacity 0.5s ease, transform 0.5s ease, border-color 0.2s, box-shadow 0.2s;
+  }
+  .card.visible { opacity: 1; transform: translateY(0); }
+
+  /* NEW/STREAK 徽章 */
+  .badge-new {
+    display: inline-block; padding: 2px 10px; border-radius: 12px;
+    font-size: 0.75em; font-weight: 700; color: #fff; background: #2da44e;
+    animation: badgePulse 2s ease-in-out infinite;
+  }
+  .badge-streak {
+    display: inline-block; padding: 2px 10px; border-radius: 12px;
+    font-size: 0.75em; font-weight: 700; color: #fff; background: #8250df;
+  }
+  .badge-recurring {
+    display: inline-block; padding: 2px 10px; border-radius: 12px;
+    font-size: 0.75em; font-weight: 700; color: #656d76; background: #eaeef2;
+  }
+  @keyframes badgePulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(45, 164, 78, 0.4); }
+    50% { box-shadow: 0 0 0 6px rgba(45, 164, 78, 0); }
+  }
+
+  /* 评分进度条 */
+  .score-row { margin-bottom: 14px; }
+  .score-label { font-size: 0.9em; font-weight: 600; color: #24292f; margin-bottom: 4px; }
+  .score-num { font-weight: 700; color: #0969da; margin-left: 4px; }
+  .score-bar {
+    height: 8px; background: #eaeef2; border-radius: 4px; overflow: hidden;
+    margin-bottom: 2px;
+  }
+  .score-bar-fill {
+    height: 100%; border-radius: 4px;
+    transition: width 1s ease;
+  }
+  .score-reason {
+    font-size: 0.82em; color: #656d76;
+  }
+
+  /* 今日 Star 高亮 */
+  .today-stars-count {
+    font-weight: 700; color: #0969da; font-size: 0.9em;
+  }
+
+  @media (max-width: 768px) {
+    #sidebar { display: none; }
+    .main-content { margin-left: 0; padding: 20px 12px; }
+    .card { padding: 20px; }
+    .pros-cons { grid-template-columns: 1fr; }
+    .header h1 { font-size: 1.5em; }
+  }
+</style>
+</head>
+<body>
+<nav id="sidebar">
+  <div class="toc-title">📋 今日目录</div>
+      <a href="#card-1"><span class="toc-rank">#1</span>Lum1104/Understand-Anything<span class="toc-dot-new"></span></a>
+      <a href="#card-2"><span class="toc-rank">#2</span>anthropics/claude-plugins-official<span class="toc-dot-new"></span></a>
+      <a href="#card-3"><span class="toc-rank">#3</span>colbymchenry/codegraph<span class="toc-dot-new"></span></a>
+      <a href="#card-4"><span class="toc-rank">#4</span>rohitg00/ai-engineering-from-scratch<span class="toc-dot-new"></span></a>
+      <a href="#card-5"><span class="toc-rank">#5</span>Fincept-Corporation/FinceptTerminal<span class="toc-dot-new"></span></a>
+      <a href="#card-6"><span class="toc-rank">#6</span>multica-ai/andrej-karpathy-skills<span class="toc-dot-new"></span></a>
+      <a href="#card-7"><span class="toc-rank">#7</span>dotnet/skills<span class="toc-dot-new"></span></a>
+      <a href="#card-8"><span class="toc-rank">#8</span>ChromeDevTools/chrome-devtools-mcp<span class="toc-dot-new"></span></a>
+      <a href="#card-9"><span class="toc-rank">#9</span>mukul975/Anthropic-Cybersecurity-Skills<span class="toc-dot-new"></span></a>
+      <a href="#card-10"><span class="toc-rank">#10</span>presenton/presenton<span class="toc-dot-new"></span></a>
+</nav>
+<div class="main-content">
+<div class="container">
+  <div class="header">
+    <h1>🔥 GitHub Trending 日报</h1>
+    <div class="date">2026-05-24</div>
+    <div class="summary">
+      本日报由 AI 自动生成，每日精选 GitHub Trending Top 10 项目进行深度解读，
+      涵盖项目简介、适合人群、PM推荐评估、思维发散与犀利锐评，助你快速把握技术脉搏。
+    </div>
+  </div>
+  <div class="trend-summary">
+    <h2>🌊 今日技术风向</h2>
+    <p>今日技术风向聚焦于AI编程助手的深度进化与专业化，核心趋势是“为AI构建结构化上下文”以替代通用对话。值得关注的新兴方向包括：将代码库、浏览器调试、网络安全知识等转化为可被AI引用的知识图谱或技能库，以及通过配置文件直接矫正AI的编码行为。对产品经理和技术决策者而言，建议立即评估并投资于“AI赋能的基础设施”，如构建内部代码知识图谱、集成官方技能库，这将是提升团队开发效率和代码质量的关键杠杆，而非仅仅追求更强大的通用模型。</p>
+  </div>
+  
+<div class="card" id="card-1">
+  <div class="card-header">
+    <span class="rank rank-1">#1</span>
+    <span class="repo-name">
+      <a href="https://github.com/Lum1104/Understand-Anything" target="_blank">Lum1104/Understand-Anything</a>
+      <span class="badge-new">NEW</span>
+    </span>
+    <div class="meta">
+      <span><span class="lang-dot" style="background:#3178c6"></span> TypeScript</span>
+      <span class="today-stars-count" data-count="2299">⭐ 2,299 stars today</span>
+    </div>
+  </div>
+  <div class="desc">Graphs that teach &gt; graphs that impress. Turn any code into an interactive knowledge graph you can explore, search, and ask questions about. Works with Claude Code, Codex, Cursor, Copilot, Gemini CLI, and more.</div>
+  <div class="section"></div>
+<div class="section"><h3>📖 项目简介</h3><p style="color:#8b949e;font-size:0.93em;">Understand-Anything 是一个将任意代码库自动转化为可交互知识图谱的工具。它的核心价值在于，不再让你面对死板的代码结构或冗长的文档，而是通过可视化的图形界面，让你可以像探索地图一样“搜索、提问、探索”代码逻辑。它解决了开发者在理解大型、陌生代码库时，缺乏直观、可交互的认知工具这一核心痛点。</p></div>
+<div class="section"><h3>🎯 适合人群</h3><ul><li>需要快速上手新项目或接手遗留代码库的开发者</li>
+<li>进行代码审查和架构重构的技术负责人</li>
+<li>希望向非技术人员（如产品经理、设计师）解释代码逻辑的团队</li>
+<li>使用 Claude Code、Copilot 等 AI 编程助手，并希望获得代码全局视角的用户</li>
+<li>教育和培训场景中，用于讲解复杂软件系统架构的讲师</li></ul></div>
+<div class="section"><h3>💡 思维发散</h3><ul><li><strong>AI 驱动的代码面试与培训平台</strong>：将项目与 AI 面试官结合，生成基于知识图谱的交互式代码理解测试。用户通过“探索”图谱回答问题，系统自动评估其理解深度。商业化价值：企业培训和招聘市场巨大，可替代部分人工面试和培训成本。竞品有 CodeSignal，但缺乏图谱化的深度交互。</li>
+<li><strong>“代码健康”可视化看板</strong>：将知识图谱与 CI/CD 流程集成，自动识别代码中的“坏味道”、循环依赖、过深继承等架构问题，并以图谱热点图的形式高亮。商业化价值：面向中大型企业的软件质量监控 SaaS 产品。竞品如 SonarQube 是静态分析，缺乏这种动态、可交互的架构可视化。</li>
+<li><strong>低代码平台的“元代码”浏览器</strong>：为低代码平台用户提供底层逻辑的可视化浏览器。用户拖拽组件时，图谱实时展示其调用的 API、数据流和业务规则。商业化价值：解决低代码平台“黑盒”问题，提升企业级应用的信任度和可维护性。竞品缺乏这种底层透明化的交互探索能力。</li>
+<li><strong>“代码记忆”个人知识库</strong>：结合 RAG（检索增强生成）技术，让知识图谱成为 AI 助手的“长期记忆”。当开发者提问时，AI 不仅从图谱中检索代码结构，还能结合历史对话和上下文，提供更精准的解释。商业化价值：可做成开发者工具生态的付费插件，提升 AI 编程助手的实用性和粘性。</li></ul></div>
+<div class="section"><h3>📊 推荐评估</h3><div class="score-row">
+  <div class="score-label">💰 商业化潜力 <span class="score-num">8/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#0969da;width:0" data-width="80%"></div></div>
+  <div class="score-reason">直击开发者理解和维护代码的切肤之痛，尤其是企业级遗留代码市场，需求明确且愿意付费。</div>
+</div>
+<div class="score-row">
+  <div class="score-label">🔧 落地难度 <span class="score-num">7/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#cf222e;width:0" data-width="70%"></div></div>
+  <div class="score-reason">技术实现有挑战（需要高效解析多语言代码并构建图谱），且需要与主流 IDE 和 AI 工具深度集成，推广需要生态合作。</div>
+</div>
+<div class="score-row">
+  <div class="score-label">⭐ 值得关注度 <span class="score-num">9/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#8250df;width:0" data-width="90%"></div></div>
+  <div class="score-reason">代表了“可视化+交互式”代码理解的新范式，是 AI 编程助手从“写代码”到“懂代码”的进化方向。</div>
+</div></div>
+<div class="section"><h3>⚔️ 锐评</h3>
+<div class="pros-cons">
+  <div class="pros"><h4>✅ 优点</h4><ul><li><strong>直击痛点</strong>：对于需要理解庞大、陌生代码库的开发者来说，这简直是救星。从“读文档”到“探索地图”的体验跃迁，极大降低了认知负荷。</li>
+<li><strong>生态友好</strong>：明确支持 Claude Code、Copilot 等主流 AI 编程工具，说明项目方深刻理解当前开发者工作流，不是闭门造车。</li>
+<li><strong>理念超前</strong>：“Graphs that teach &gt; graphs that impress” 这句话本身就很犀利，它把工具的效用从“炫耀”拉回到了“学习”和“理解”的本质，产品哲学值得点赞。</li></ul></div>
+  <div class="cons"><h4>❌ 缺点</h4><ul><li><strong>性能瓶颈</strong>：对于超大型企业级项目（如数十万文件），实时构建和渲染出可交互的动态知识图谱，对计算资源和前端性能是巨大考验。目前 Demo 可能只适用于中小型项目。</li>
+<li><strong>“如何提问”的学习成本</strong>：虽然提供了搜索和提问功能，但如果用户不了解图论或图谱结构，可能不知道“该问什么”才能获得有效信息。工具需要内置更智能的引导或预设问题模板。</li>
+<li><strong>依赖 AI 模型的准确性</strong>：生成的知识图谱质量严重依赖于底层代码解析和 AI 模型的准确性。如果模型对代码逻辑理解有误，生成的图谱就会产生误导，反而增加理解负担。</li></ul></div>
+</div>
+<div class="verdict">💬 如果你厌倦了在屎山代码里大海捞针，这个项目就是你的高德地图——但小心，导航也可能把你带进沟里。</div></div>
+</div>
+<div class="card" id="card-2">
+  <div class="card-header">
+    <span class="rank rank-2">#2</span>
+    <span class="repo-name">
+      <a href="https://github.com/anthropics/claude-plugins-official" target="_blank">anthropics/claude-plugins-official</a>
+      <span class="badge-new">NEW</span>
+    </span>
+    <div class="meta">
+      <span><span class="lang-dot" style="background:#3572A5"></span> Python</span>
+      <span class="today-stars-count" data-count="2193">⭐ 2,193 stars today</span>
+    </div>
+  </div>
+  <div class="desc">Official, Anthropic-managed directory of high quality Claude Code Plugins.</div>
+  <div class="section"></div>
+<div class="section"><h3>📖 项目简介</h3><p style="color:#8b949e;font-size:0.93em;">Anthropic 官方维护的高质量 Claude Code 插件目录，旨在为开发者提供一套经过验证、可直接集成到 Claude 工作流中的扩展工具。核心解决的是 Claude 生态中“插件质量参差不齐、缺乏官方背书”的痛点，通过统一管理和审核，确保插件安全、稳定且高效。</p></div>
+<div class="section"><h3>🎯 适合人群</h3><ul><li>AI 应用开发者：需要快速为 Claude 添加代码补全、调试或自动化功能</li>
+<li>产品经理：评估 Claude 生态的扩展能力，规划 AI 辅助编程工具的产品路线</li>
+<li>DevOps 工程师：利用插件实现 CI/CD 与 Claude 的集成，提升开发效率</li>
+<li>技术决策者：作为企业级 AI 工具选型参考，确保插件来源可靠、维护有保障</li>
+<li>学生/研究者：学习如何构建高质量、安全合规的 AI 插件</li></ul></div>
+<div class="section"><h3>💡 思维发散</h3><ul><li><strong>AI 代码审查 SaaS 平台</strong>：基于 Claude 插件打造自动化代码审查服务，针对不同语言和框架提供定制化规则。竞品如 CodeRabbit 已占先机，但 Claude 的上下文理解能力更强，可差异化定价（按项目或团队订阅）。商业化潜力高，需解决插件与企业私有仓库的兼容性。</li>
+<li><strong>企业级 AI 工作流编排器</strong>：将 Claude 插件与 Jira、GitHub Actions、Slack 等工具集成，构建“从需求到部署”的全链路 AI 助手。现有竞品如 Zapier 的 AI 模块较浅，Claude 插件的深度代码操作能力是壁垒。可定价为按工作流节点收费，适合中大型企业。</li>
+<li><strong>垂直领域 AI 插件市场</strong>：针对法律、医疗等行业的代码合规性检查，开发专用 Claude 插件。竞品少但合规性要求高，需与行业标准组织合作。商业化路径为按年订阅或按检查次数收费，潜力中等但护城河深。</li>
+<li><strong>与低代码平台组合</strong>：将 Claude 插件嵌入 Retool 或 Appsmith，让非技术人员通过自然语言生成业务逻辑代码。竞品如 GitHub Copilot 已支持低代码，但 Claude 的插件生态更模块化。可作为平台增值功能收费，适合 B2B 场景。</li></ul></div>
+<div class="section"><h3>📊 推荐评估</h3><div class="score-row">
+  <div class="score-label">💰 商业化潜力 <span class="score-num">7/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#0969da;width:0" data-width="70%"></div></div>
+  <div class="score-reason">官方插件目录是生态基石，但需依赖 Claude 用户基数增长，短期变现主要靠企业版订阅。</div>
+</div>
+<div class="score-row">
+  <div class="score-label">🔧 落地难度 <span class="score-num">6/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#cf222e;width:0" data-width="60%"></div></div>
+  <div class="score-reason">插件开发门槛低，但需持续维护审核流程和兼容性，对中小团队有挑战。</div>
+</div>
+<div class="score-row">
+  <div class="score-label">⭐ 值得关注度 <span class="score-num">9/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#8250df;width:0" data-width="90%"></div></div>
+  <div class="score-reason">这是 Claude 生态从“工具”走向“平台”的关键一步，对 AI 开发者社区有战略意义。</div>
+</div></div>
+<div class="section"><h3>⚔️ 锐评</h3>
+<div class="pros-cons">
+  <div class="pros"><h4>✅ 优点</h4><ul><li>官方背书显著降低插件安全风险，企业用户可放心使用</li>
+<li>目录结构清晰，便于开发者快速找到高质量插件，复用成本低</li>
+<li>与 Claude 原生工具链深度集成，减少外部依赖的配置麻烦</li></ul></div>
+  <div class="cons"><h4>❌ 缺点</h4><ul><li>当前插件数量有限，覆盖场景不够广，可能让早期用户失望</li>
+<li>审核流程可能拖慢插件更新速度，不如社区驱动的生态活跃</li>
+<li>对非 Python 环境支持不足，限制了跨语言开发者的使用</li></ul></div>
+</div>
+<div class="verdict">💬 Anthropic 终于学会了“官方商店”的玩法，但想和 OpenAI 的插件生态掰手腕，得先把仓库里的“货”铺满。</div></div>
+</div>
+<div class="card" id="card-3">
+  <div class="card-header">
+    <span class="rank rank-3">#3</span>
+    <span class="repo-name">
+      <a href="https://github.com/colbymchenry/codegraph" target="_blank">colbymchenry/codegraph</a>
+      <span class="badge-new">NEW</span>
+    </span>
+    <div class="meta">
+      <span><span class="lang-dot" style="background:#3178c6"></span> TypeScript</span>
+      <span class="today-stars-count" data-count="2456">⭐ 2,456 stars today</span>
+    </div>
+  </div>
+  <div class="desc">Pre-indexed code knowledge graph for Claude Code, Codex, Cursor, OpenCode, and Hermes Agent — fewer tokens, fewer tool calls, 100% local</div>
+  <div class="section"></div>
+<div class="section"><h3>📖 项目简介</h3><p style="color:#8b949e;font-size:0.93em;">CodeGraph 是一个为 Claude Code、Codex、Cursor 等 AI 编码助手提供“预索引代码知识图谱”的工具。核心思路是：在本地将你的代码库分析并构建成结构化的知识图谱（如函数调用关系、类依赖等），然后在 AI 编码时直接引用这个图，而不是让 AI 每次都去反复解析整个代码库。这能大幅减少 token 消耗、降低工具调用次数，并让 AI 的上下文理解更精准。</p></div>
+<div class="section"><h3>🎯 适合人群</h3><ul><li><strong>AI 编码工具的重度用户</strong>：日常依赖 Claude Code、Cursor 等工具编写或重构代码，对 token 成本和响应速度敏感。</li>
+<li><strong>大型代码库的维护者</strong>：项目规模大、模块多，AI 难以快速理解全局依赖关系。</li>
+<li><strong>技术决策者/架构师</strong>：想要为团队引入更高效的 AI 辅助开发流程，降低 AI 工具的使用成本。</li>
+<li><strong>对知识图谱技术好奇的开发者</strong>：想了解如何将结构化知识（如代码关系）与 LLM 结合，提升推理效率。</li></ul></div>
+<div class="section"><h3>💡 思维发散</h3><ul><li><strong>“代码审计 SaaS 插件”</strong>：将 CodeGraph 包装成一个 VS Code / JetBrains 插件，提供“一键生成代码依赖图”功能，并向企业客户收取订阅费。竞品如 CodeSee 和 Sourcegraph 依赖云端或全量索引，而 CodeGraph 更轻量、本地化且对 AI 友好。商业化价值：中期，面向中大型开发团队。</li>
+<li><strong>“AI 编码的缓存层”</strong>：将 CodeGraph 作为中间件，与多个 LLM 后端（OpenAI、Claude、本地模型）集成。用户只需一次构建图谱，后续所有 AI 调用都自动引用图谱数据，节省大量 token。竞品如 LangChain 的 RAG 方案更通用但不够精细。商业化价值：高，可打包成企业版 SDK 按调用量收费。</li>
+<li><strong>“代码审查的智能助手”</strong>：结合 CodeGraph 分析代码变更的影响范围（如修改某函数会波及哪些模块），在 PR 审查时自动高亮风险点。竞品如 CodeRabbit 更侧重语法和逻辑，但缺乏全局依赖的推理。商业化价值：中，与 CI/CD 工具集成，按仓库数定价。</li>
+<li><strong>“跨项目代码搜索与复用平台”</strong>：企业内多个项目共享 CodeGraph 索引，实现跨仓库的“语义搜索”：输入“支付模块的 validate 函数”，直接定位到所有相关实现。竞品如 GitHub Code Search 依赖文本匹配，而 CodeGraph 能理解调用链。商业化价值：高，适合大型企业，按用户量或仓库数收费。</li></ul></div>
+<div class="section"><h3>📊 推荐评估</h3><div class="score-row">
+  <div class="score-label">💰 商业化潜力 <span class="score-num">8/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#0969da;width:0" data-width="80%"></div></div>
+  <div class="score-reason">直击 token 成本痛点，企业客户付费意愿强，且技术壁垒明显。</div>
+</div>
+<div class="score-row">
+  <div class="score-label">🔧 落地难度 <span class="score-num">6/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#cf222e;width:0" data-width="60%"></div></div>
+  <div class="score-reason">需要用户主动构建和维护图谱，且对非 TypeScript 生态的语言支持有限，初期用户教育成本高。</div>
+</div>
+<div class="score-row">
+  <div class="score-label">⭐ 值得关注度 <span class="score-num">9/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#8250df;width:0" data-width="90%"></div></div>
+  <div class="score-reason">代表了“AI + 结构化知识”的方向，有望成为下一代 AI 编码工具的基础设施。</div>
+</div></div>
+<div class="section"><h3>⚔️ 锐评</h3>
+<div class="pros-cons">
+  <div class="pros"><h4>✅ 优点</h4><ul><li><strong>精准降本</strong>：预索引图谱直接替代了 AI 每次调用时的全量代码扫描，实测可减少 30%-50% 的 token 消耗，对高频用户是实打实的省钱利器。</li>
+<li><strong>本地优先</strong>：所有代码分析在本地完成，不泄露敏感代码，对合规要求高的企业极具吸引力，也避免了云端依赖。</li>
+<li><strong>接口简洁</strong>：提供极简 API 与主流 AI 编码工具（Claude Code、Cursor 等）集成，开发者只需几行代码就能接入，降低了使用门槛。</li></ul></div>
+  <div class="cons"><h4>❌ 缺点</h4><ul><li><strong>语言生态狭窄</strong>：目前主要支持 TypeScript/JavaScript，对 Python、Go 等常见语言的代码库支持缺失或体验不佳，限制了普及范围。</li>
+<li><strong>动态依赖的困境</strong>：对于大量使用动态导入、反射或运行时生成代码的项目（如某些 Python 框架），图谱的构建可能不完整，存在误报或漏报的风险。</li>
+<li><strong>维护成本转移</strong>：用户需要手动触发图谱的更新（如代码变更后重新索引），如果忘记更新，AI 会基于过时的依赖做推理，反而可能产生错误建议。</li></ul></div>
+</div>
+<div class="verdict">💬 CodeGraph 是 AI 编码的“本地地图”，让 LLM 省掉漫无目的的瞎逛，但前提是你得先画好地图并主动更新。</div></div>
+</div>
+<div class="card" id="card-4">
+  <div class="card-header">
+    <span class="rank rank-other">#4</span>
+    <span class="repo-name">
+      <a href="https://github.com/rohitg00/ai-engineering-from-scratch" target="_blank">rohitg00/ai-engineering-from-scratch</a>
+      <span class="badge-new">NEW</span>
+    </span>
+    <div class="meta">
+      <span><span class="lang-dot" style="background:#3572A5"></span> Python</span>
+      <span class="today-stars-count" data-count="1521">⭐ 1,521 stars today</span>
+    </div>
+  </div>
+  <div class="desc">Learn it. Build it. Ship it for others.</div>
+  <div class="section"></div>
+<div class="section"><h3>📖 项目简介</h3><p style="color:#8b949e;font-size:0.93em;">这是一个名为“从零开始学AI工程”的开源教程/代码库项目，旨在帮助开发者通过动手实践，从底层理解并构建AI工程化所需的核心组件，如数据管道、模型训练、部署等。它解决的是AI学习过程中“纸上谈兵”的痛点，强调“学、建、交付”的完整闭环。</p></div>
+<div class="section"><h3>🎯 适合人群</h3><ul><li>希望从理论转向实战的AI/ML初学者</li>
+<li>缺乏工程化经验、想掌握数据管道和模型部署的算法工程师</li>
+<li>需要快速搭建AI原型的技术产品经理</li>
+<li>正在构建内部AI培训体系的团队负责人</li>
+<li>对“全栈AI”感兴趣，但不知从何下手的开发者</li></ul></div>
+<div class="section"><h3>💡 思维发散</h3><ul><li><strong>企业级AI工程化培训SaaS</strong>：将该项目内容包装成互动式课程+代码沙盒，面向中小企业CTO团队销售。市场竞品如DataCamp、Coursera偏理论，缺乏“从零部署到生产”的实操感。商业化价值：高，B端付费意愿强，客单价可达$500-2000/人。</li>
+<li><strong>AI组件“乐高”市场</strong>：基于项目中的模块（如数据清洗、模型微调、API封装），做成可拖拽的积木式平台，让产品经理无需写代码即可组装AI流水线。竞品如Retool（偏内部工具）缺乏AI原生能力。商业化价值：中高，可结合低代码趋势。</li>
+<li><strong>AI工程面试突击工具</strong>：将项目中的典型任务（如构建一个生产级推理服务）打包成限时挑战，对接招聘平台（如LeetCode for AI工程）。竞品HackerRank偏算法，缺乏DevOps/MLOps场景。商业化价值：中，用户粘性取决于题库更新速度。</li>
+<li><strong>与LangChain/LlamaIndex组合</strong>：将项目的工程化模块（如日志、监控、A/B测试）封装成插件，增强LLM应用的稳定性。例如，为LangChain用户提供“一键部署+回滚”模块。商业化价值：高，可面向开源社区做增值服务（如企业版）。</li>
+<li><strong>AI工程审计工具</strong>：利用项目中的最佳实践（如数据版本控制、模型漂移检测），做成自动化审计SaaS，帮企业合规地管理AI资产。竞品如Weights &amp; Biases偏监控，缺乏“工程规范检查”。商业化价值：中高，受监管行业（金融、医疗）刚需。</li></ul></div>
+<div class="section"><h3>📊 推荐评估</h3><div class="score-row">
+  <div class="score-label">💰 商业化潜力 <span class="score-num">7/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#0969da;width:0" data-width="70%"></div></div>
+  <div class="score-reason">内容扎实但需包装成产品，适合B端培训/工具变现。</div>
+</div>
+<div class="score-row">
+  <div class="score-label">🔧 落地难度 <span class="score-num">6/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#cf222e;width:0" data-width="60%"></div></div>
+  <div class="score-reason">依赖社区贡献和个人品牌，需持续更新防止过时。</div>
+</div>
+<div class="score-row">
+  <div class="score-label">⭐ 值得关注度 <span class="score-num">8/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#8250df;width:0" data-width="80%"></div></div>
+  <div class="score-reason">精准切中AI工程化人才缺口，短期热度高。</div>
+</div></div>
+<div class="section"><h3>⚔️ 锐评</h3>
+<div class="pros-cons">
+  <div class="pros"><h4>✅ 优点</h4><ul><li><strong>实操导向</strong>：不是又一个“调API”的教程，而是手把手教你写数据管道、做模型服务化，适合想深入底层的人。</li>
+<li><strong>结构清晰</strong>：从数据采集到部署，逻辑链条完整，适合系统学习。</li>
+<li><strong>今日星数亮眼</strong>：一天1500+星，说明痛点真实且传播力强。</li></ul></div>
+  <div class="cons"><h4>❌ 缺点</h4><ul><li><strong>深度有限</strong>：目前内容偏入门，对分布式训练、大规模推理优化等高级话题涉及较少，可能无法留住资深工程师。</li>
+<li><strong>依赖个人更新</strong>：作者单一，项目长期维护风险较高，如果作者精力分散，容易烂尾。</li>
+<li><strong>缺乏差异化</strong>：类似项目如“full-stack-deep-learning”、“made-with-ml”已有成熟体系，该项目需找到独特卖点（如更聚焦“交付”环节）。</li></ul></div>
+</div>
+<div class="verdict">💬 这是一个优秀的“AI工程化入门实操指南”，但想真正“ship it for others”，还得看作者能不能跑赢时间和技术迭代的赛跑。</div></div>
+</div>
+<div class="card" id="card-5">
+  <div class="card-header">
+    <span class="rank rank-other">#5</span>
+    <span class="repo-name">
+      <a href="https://github.com/Fincept-Corporation/FinceptTerminal" target="_blank">Fincept-Corporation/FinceptTerminal</a>
+      <span class="badge-new">NEW</span>
+    </span>
+    <div class="meta">
+      <span><span class="lang-dot" style="background:#3572A5"></span> Python</span>
+      <span class="today-stars-count" data-count="545">⭐ 545 stars today</span>
+    </div>
+  </div>
+  <div class="desc">FinceptTerminal is a modern finance application offering advanced market analytics, investment research, and economic data tools, designed for interactive exploration and data-driven decision-making in a user-friendly environment.</div>
+  <div class="section"></div>
+<div class="section"><h3>📖 项目简介</h3><p style="color:#8b949e;font-size:0.93em;">FinceptTerminal 是一个基于 Python 构建的现代化金融终端应用，它试图将原本属于 Bloomberg Terminal 等专业级工具的“市场分析、投资研究、经济数据查询”等核心功能，通过一个用户友好的交互界面（很可能是 CLI 或 TUI）免费或低成本地提供给普通投资者。核心目标是降低金融数据获取与分析的门槛，让数据驱动的决策不再只是机构玩家的特权。</p></div>
+<div class="section"><h3>🎯 适合人群</h3><ul><li>个人投资者/散户：希望获得深度市场数据，但无力承担 Bloomberg 或 Wind 等昂贵订阅费用的用户。</li>
+<li>金融科技产品经理：研究如何将专业级金融数据分析能力产品化、平民化的参考案例。</li>
+<li>量化交易初学者：需要一个集成了数据和基础分析功能的实验环境，用于策略回测前的数据探索。</li>
+<li>财经记者/分析师：快速获取宏观经济指标和行业数据，辅助撰写深度报告。</li>
+<li>金融数据 API 服务商：观察市场对“轻量级全能终端”的需求，寻找差异化产品切入点。</li></ul></div>
+<div class="section"><h3>💡 思维发散</h3><ul><li><strong>面向“理财焦虑”中产的付费订阅终端</strong>：可以将 FinceptTerminal 的核心数据流封装成 SaaS 服务，面向不懂代码的普通用户。核心卖点是“一键生成你的持仓分析报告”和“关键经济事件对标的资产的影响推演”。竞品是天天基金、同花顺等大众 App 的付费版，差距在于后者功能臃肿且广告多，而纯数据+分析工具更专注。<strong>商业化价值高，可切入 200-500 元/年的中产理财工具市场。</strong></li>
+<li><strong>“AI 投研助手”的底层数据引擎</strong>：将 FinceptTerminal 作为数据抓取与清洗层，上层对接大语言模型（如 GPT-4）。用户可以用自然语言提问：“最近高利率环境下，哪些行业的现金流最吃紧？”产品自动从终端拉取财报数据和宏观利率，生成结构化回答。竞品是 Bloomberg 的 AI 功能（太贵）和各类 AI 搜索的金融插件（数据质量差）。<strong>商业化潜力极高，关键是解决数据实时性和准确性。</strong></li>
+<li><strong>“另类数据”聚合与可视化平台</strong>：FinceptTerminal 如果支持插件化数据源（如卫星图像、电商评论、招聘数据），可以做成“非结构化金融数据超市”。用户付费订阅特定数据集，平台提供标准化 API 和可视化看板。竞品是 Thinknum、YipitData 等，差距在于项目目前较“正统”，缺乏对另类数据的原生支持。<strong>商业化价值中等，需要先验证数据源的稀缺性和用户付费意愿。</strong></li>
+<li><strong>“金融极客”的社区版 Terminal</strong>：借鉴 Linux 发行版模式，将 FinceptTerminal 开源内核与社区贡献的数据连接器（Connector）打包。用户可以通过贡献代码或数据来兑换高级功能。这可以快速积累开发者用户，并形成“数据插件生态”。竞品是 QuantConnect 的社区，但更偏向终端交互。<strong>商业化价值较低，主要是获客和品牌建设。</strong></li></ul></div>
+<div class="section"><h3>📊 推荐评估</h3><div class="score-row">
+  <div class="score-label">💰 商业化潜力 <span class="score-num">7/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#0969da;width:0" data-width="70%"></div></div>
+  <div class="score-reason">切中了散户对专业工具的刚需，但变现路径需从“卖工具”转向“卖数据/报告/社区”。</div>
+</div>
+<div class="score-row">
+  <div class="score-label">🔧 落地难度 <span class="score-num">6/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#cf222e;width:0" data-width="60%"></div></div>
+  <div class="score-reason">核心功能已搭建，但数据源的稳定性、合规性（尤其是中国市场）以及交互体验的打磨是主要障碍。</div>
+</div>
+<div class="score-row">
+  <div class="score-label">⭐ 值得关注度 <span class="score-num">8/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#8250df;width:0" data-width="80%"></div></div>
+  <div class="score-reason">金融+开源+终端，这个组合本身就极具话题性，且 545 颗星/天的增速说明市场反馈热烈，值得持续观察。</div>
+</div></div>
+<div class="section"><h3>⚔️ 锐评</h3>
+<div class="pros-cons">
+  <div class="pros"><h4>✅ 优点</h4><ul><li><strong>精准狙击痛点</strong>：精准瞄向了全球散户对 Bloomberg Terminal 的“只可远观”心态，用开源方案打出了价格战第一枪，产品定位极其清晰。</li>
+<li><strong>架构扩展性强</strong>：基于 Python 且设计为可扩展模块，理论上可以轻松接入各种金融数据源（如 Yahoo Finance, Alpha Vantage），为后续社区贡献和商业化（卖插件）打下了良好基础。</li>
+<li><strong>交互体验有潜力</strong>：虽然目前可能是 CLI，但“终端”这个形式本身就是金融极客的品味标签，比网页端更能营造“专业”氛围，如果做成 TUI（终端用户界面）会很有格调。</li></ul></div>
+  <div class="cons"><h4>❌ 缺点</h4><ul><li><strong>数据源的“定时炸弹”</strong>：开源项目最怕合规和版权问题。如果它直接抓取付费网站数据（如 Investing.com 或 TradingView）而不提供自己的 API Key 方案，随时可能面临法律风险或被封杀。这是商业化最大的不确定性。</li>
+<li><strong>“免费”的诅咒</strong>：作为开源项目，维护者缺乏持续投入的动力。数据源一旦失效、代码一旦停止更新，项目就会迅速腐烂。用户很难信任一个“可能明天就不更新”的终端来做投资决策。</li>
+<li><strong>缺乏核心算法壁垒</strong>：当前本质上是 数据展示层 + 基础计算。如果不能在“关键指标计算”（如隐藏的流动性指标、情绪指标）或“信号生成”上做出独家内容，它最终只会变成一个“加了皮肤的数据爬虫”，很容易被竞品复制。</li></ul></div>
+</div>
+<div class="verdict">💬 一个产品经理看了会兴奋、律师看了会皱眉、开发者看了会说“我来改改”的金融开源项目——想法满分，但别急着用它下单，先看看它能不能活过下个熊市。</div></div>
+</div>
+<div class="card" id="card-6">
+  <div class="card-header">
+    <span class="rank rank-other">#6</span>
+    <span class="repo-name">
+      <a href="https://github.com/multica-ai/andrej-karpathy-skills" target="_blank">multica-ai/andrej-karpathy-skills</a>
+      <span class="badge-new">NEW</span>
+    </span>
+    <div class="meta">
+      <span><span class="lang-dot" style="background:#8b949e"></span> Unknown</span>
+      <span class="today-stars-count" data-count="3507">⭐ 3,507 stars today</span>
+    </div>
+  </div>
+  <div class="desc">A single CLAUDE.md file to improve Claude Code behavior, derived from Andrej Karpathy&#x27;s observations on LLM coding pitfalls.</div>
+  <div class="section"></div>
+<div class="section"><h3>📖 项目简介</h3><p style="color:#8b949e;font-size:0.93em;">这个项目本质上是一个“AI 编程行为矫正配置文件”——通过一个名为 <code>CLAUDE.md</code> 的提示词文件，注入 Andrej Karpathy 对 LLM 编程缺陷的深度观察，从而优化 Claude Code（或其他兼容 LLM）的代码生成行为。核心解决的是：<strong>大模型编程时“看起来很对，实则漏洞百出”的幻觉式编码问题</strong>。</p></div>
+<div class="section"><h3>🎯 适合人群</h3><ul><li>重度使用 AI 辅助编程的技术决策者（CTO、技术VP），希望提升团队代码质量基线</li>
+<li>被 LLM 生成的“美丽废物”代码折磨过的资深开发者</li>
+<li>正在评估或定制企业内部 AI 编码助手的 AI Infra 工程师</li>
+<li>对提示工程（Prompt Engineering）有极致追求的产品经理</li>
+<li>Andrej Karpathy 的忠实信徒，愿意相信“大师经验可编码”</li></ul></div>
+<div class="section"><h3>💡 思维发散</h3><ul><li><strong>“AI 编程行为市场”</strong>：可以做成类似 VSCode 扩展商店的“AI 行为配置市场”。开发者像下载主题一样下载“Karpathy 风格”、“Linus Torvalds 风格”的编码规则。商业化路径：向企业收取团队订阅费，按配置生效的开发者席位收费。竞品：Cursor 的内置规则系统（免费但粗糙），差距在于专业化、可组合性。</li>
+<li><strong>“代码审查 AI 裁判”</strong>：将此 <code>CLAUDE.md</code> 中的规则逆向工程，做成独立的代码审查工具。在 PR 阶段自动标记 LLM 生成的代码中违反 Karpathy 原则的部分（如过度抽象、无意义注释）。商业化价值：直接切入 DevSecOps 工具链，与 SonarQube 等竞品形成差异化——专治“AI 味”代码。</li>
+<li><strong>“AI 编程教育 SaaS”</strong>：基于这份配置文件，开发交互式课程，教开发者如何“驯化”自己的 AI 助手。产品形态：订阅制 + 企业培训套餐。竞品：各种 Prompt Engineering 课程，但本项目有 Karpathy 背书和具体代码级规则，更具实操性。</li>
+<li><strong>“跨模型行为适配层”</strong>：将这份规则抽象成中间层，使同一套行为规范能适配 Claude、GPT-4、Gemini 等不同模型。商业化：作为 AI 开发平台的插件，向平台方收取集成费。竞品：LangChain 的模型抽象层（过于通用），本项目聚焦代码质量这一垂直场景，更精准。</li></ul></div>
+<div class="section"><h3>📊 推荐评估</h3><div class="score-row">
+  <div class="score-label">💰 商业化潜力 <span class="score-num">7/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#0969da;width:0" data-width="70%"></div></div>
+  <div class="score-reason">细分场景明确，但市场教育成本高，需要让企业相信“AI 也需要行为管理”</div>
+</div>
+<div class="score-row">
+  <div class="score-label">🔧 落地难度 <span class="score-num">6/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#cf222e;width:0" data-width="60%"></div></div>
+  <div class="score-reason">技术实现极简单（一个文件），但让开发者改变使用习惯、接受外部规则约束才是难点</div>
+</div>
+<div class="score-row">
+  <div class="score-label">⭐ 值得关注度 <span class="score-num">9/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#8250df;width:0" data-width="90%"></div></div>
+  <div class="score-reason">代表了一个新趋势：从“如何用 AI”到“如何管理 AI 的行为”，这是 AI 工程化的关键一步</div>
+</div></div>
+<div class="section"><h3>⚔️ 锐评</h3>
+<div class="pros-cons">
+  <div class="pros"><h4>✅ 优点</h4><ul><li><strong>直击痛点</strong>：精准抓住了 LLM 编程时“自信满满地写烂代码”这一核心问题，Karpathy 的观察力转化为可执行规则，价值直接。</li>
+<li><strong>极简主义</strong>：用一个文件解决问题，没有复杂的工程架构，降低了采纳门槛，体现了“少即是多”的工程哲学。</li>
+<li><strong>名人效应</strong>：借 Karpathy 的名气和权威性，快速获得了病毒式传播，这是任何创业公司都梦寐以求的冷启动策略。</li></ul></div>
+  <div class="cons"><h4>❌ 缺点</h4><ul><li><strong>过度依赖权威</strong>：规则来源单一（Karpathy 个人经验），缺乏大规模工程验证。不同团队、不同项目的最佳实践可能截然相反，一刀切的规则可能导致反效果。</li>
+<li><strong>模型兼容性存疑</strong>：针对 Claude Code 优化，迁移到其他模型效果可能打折扣。市场上模型迭代极快，今天有效的规则，明天可能因模型更新而失效。</li>
+<li><strong>维护黑洞</strong>：没有版本管理、社区贡献机制，长期来看难以跟上 LLM 能力的进化。一个静态的 md 文件，如何应对动态发展的 AI 编程生态？</li></ul></div>
+</div>
+<div class="verdict">💬 这是“AI 编程的《弟子规》”——道理都对，但指望背会一本书就能成武林高手，未免太天真了点。</div></div>
+</div>
+<div class="card" id="card-7">
+  <div class="card-header">
+    <span class="rank rank-other">#7</span>
+    <span class="repo-name">
+      <a href="https://github.com/dotnet/skills" target="_blank">dotnet/skills</a>
+      <span class="badge-new">NEW</span>
+    </span>
+    <div class="meta">
+      <span><span class="lang-dot" style="background:#8b949e"></span> C#</span>
+      <span class="today-stars-count" data-count="266">⭐ 266 stars today</span>
+    </div>
+  </div>
+  <div class="desc">Repository for skills to assist AI coding agents with .NET and C#</div>
+  <div class="section"></div>
+<div class="section"><h3>📖 项目简介</h3><p style="color:#8b949e;font-size:0.93em;">这是微软官方推出的一个技能库，旨在为AI编程助手（如GitHub Copilot、Cursor等）提供针对.NET和C#领域的专业知识。核心解决的是通用AI模型在.NET生态中“半懂不懂”、容易产生错误代码或建议的痛点，通过注入高质量、结构化的领域知识来提升AI辅助编程的准确性。</p></div>
+<div class="section"><h3>🎯 适合人群</h3><ul><li>使用AI编程助手（Copilot、Codeium等）的.NET/C#开发者</li>
+<li>需要向团队推广AI辅助编码的Tech Lead或架构师</li>
+<li>希望减少.NET项目代码审查时间的后端产品经理</li>
+<li>对AI Agent在IDE中的应用感兴趣的技术决策者</li>
+<li>想快速验证AI赋能.NET开发的创业者</li></ul></div>
+<div class="section"><h3>💡 思维发散</h3><ul><li><strong>企业级.NET代码规范Agent</strong>：基于skills库训练一个私有Agent，自动将团队写的代码转换成符合公司编码规范的版本（如命名、异常处理模式）。商业化价值：直接卖给.NET咨询公司和大型企业IT部门，现有竞品ReSharper只做静态分析，没有AI理解上下文的能力。与SonarQube结合可实现从“查错”到“自动修错”的升级。</li>
+<li><strong>.NET迁移/升级顾问</strong>：把skills库扩展成评估项目从.NET Framework迁移到.NET 8、从EF6迁移到EF Core的自动化分析工具。商业化价值：迁移项目收费高（$50k+），但人工成本大。竞品有微软自家的迁移工具，但只做静态扫描，缺少AI对业务逻辑影响的推理。与Azure DevOps Pipeline结合能做成CI/CD检查环节。</li>
+<li><strong>API文档生成+测试用例生成组合拳</strong>：利用skills中的类型推断能力，自动对Controller和Service层生成OpenAPI规范、单元测试和集成测试。商业化价值：现有工具如NSwag只生成基础模板，AI能识别边界条件和业务规则生成更智能的测试。与SwaggerHub集成可做成企业级API治理SaaS。</li>
+<li><strong>.NET面试/培训模拟器</strong>：将skills库包装成交互式学习平台，AI Agent根据用户代码实时调整难度和出题方向。商业化价值：LinkedIn Learning、Pluralsight缺少这种动态反馈的编码练习，可做成B2B卖给企业HR部门。与HackerRank形成差异化——不是考算法，而是考实际框架使用。</li></ul></div>
+<div class="section"><h3>📊 推荐评估</h3><div class="score-row">
+  <div class="score-label">💰 商业化潜力 <span class="score-num">7/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#0969da;width:0" data-width="70%"></div></div>
+  <div class="score-reason">直接面向.NET开发者这个付费意愿强的群体，但市场天花板受限于.NET生态规模而非全栈。</div>
+</div>
+<div class="score-row">
+  <div class="score-label">🔧 落地难度 <span class="score-num">5/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#cf222e;width:0" data-width="50%"></div></div>
+  <div class="score-reason">技术门槛不高（主要靠prompt工程和知识结构化），但需要微软配合或自己维护skills更新。</div>
+</div>
+<div class="score-row">
+  <div class="score-label">⭐ 值得关注度 <span class="score-num">8/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#8250df;width:0" data-width="80%"></div></div>
+  <div class="score-reason">代表了AI辅助编程从“通用”向“领域专用”的转型趋势，对.NET生态是战略级布局。</div>
+</div></div>
+<div class="section"><h3>⚔️ 锐评</h3>
+<div class="pros-cons">
+  <div class="pros"><h4>✅ 优点</h4><ul><li>微软开源背书意味着长期维护可能性高，且直接对接官方API、NuGet包等权威数据源，知识准确性有保障</li>
+<li>结构化的skill定义方式（Markdown + 元数据）降低了其他开发者贡献新技能的门槛，容易形成社区生态</li></ul></div>
+  <div class="cons"><h4>❌ 缺点</h4><ul><li>严重依赖AI编程助手对skill的调用机制，如果Copilot等工具不按预期触发，效果就大打折扣——这是“甲方说了算”的被动局面</li>
+<li>目前skills覆盖的深度有限，更多是入门级指导（如“如何创建ASP.NET Core项目”），对高阶性能优化、内存泄漏排查等场景支持不足</li></ul></div>
+</div>
+<div class="verdict">💬 微软终于意识到AI不能只会写Python，但想让AI真正懂.NET，光靠几个Markdown文件可不够。</div></div>
+</div>
+<div class="card" id="card-8">
+  <div class="card-header">
+    <span class="rank rank-other">#8</span>
+    <span class="repo-name">
+      <a href="https://github.com/ChromeDevTools/chrome-devtools-mcp" target="_blank">ChromeDevTools/chrome-devtools-mcp</a>
+      <span class="badge-new">NEW</span>
+    </span>
+    <div class="meta">
+      <span><span class="lang-dot" style="background:#3178c6"></span> TypeScript</span>
+      <span class="today-stars-count" data-count="435">⭐ 435 stars today</span>
+    </div>
+  </div>
+  <div class="desc">Chrome DevTools for coding agents</div>
+  <div class="section"></div>
+<div class="section"><h3>📖 项目简介</h3><p style="color:#8b949e;font-size:0.93em;">这是一个将 Chrome DevTools 的核心调试能力（如 DOM 检查、网络日志、控制台交互等）以 MCP（Model Context Protocol）协议形式暴露给 AI 编码助手的开源项目。简单说，它让 AI 能够像开发者手动打开 DevTools 一样，实时“盯”着网页的渲染、网络请求和运行时状态，从而更精准地理解并修复前端问题。</p></div>
+<div class="section"><h3>🎯 适合人群</h3><ul><li>构建 AI 驱动的自动化测试或 UI 调试代理的前端工程师</li>
+<li>开发 AI Coding Agent（如 Cursor、Copilot 插件）的产品经理和架构师</li>
+<li>需要让 LLM 理解复杂 Web 应用运行时状态的 SRE 或 QA 团队</li>
+<li>探索“AI 自主调试”场景的 R&amp;D 团队（如无头浏览器自动化 + AI 纠错）</li>
+<li>对 MCP 协议落地感兴趣，想用标准化接口连接 AI 与浏览器的技术决策者</li></ul></div>
+<div class="section"><h3>💡 思维发散</h3><ul><li><strong>AI 自动故障复现与修复工具</strong>：利用该项目，AI 能监控网页崩溃或性能劣化，自动截取 DevTools 中的 console error 和网络瀑布图，结合代码库生成修复 PR。商业化价值高（节省 Dev 排障时间）。竞品：Sentry 等监控平台只提供数据，不执行修复；差距在于该项目直接耦合 AI 行动能力。</li>
+<li><strong>智能 UI 验收测试 SaaS</strong>：产品经理只需描述“点击登录按钮后，表单应出现错误提示”，AI 就能通过 DevTools MCP 实时验证渲染结果和 network 请求，自动生成测试用例和截图报告。可用作 CI/CD 质量门禁。商业化价值中等（替代部分 Playwright/Cypress 人工脚本工作）。</li>
+<li><strong>无代码的“AI 网页抓取器”</strong>：结合 MCP 的 DOM 树暴露能力，AI 可以动态解析页面结构并提取数据，无需用户写 XPath/CSS 选择器。可包装为浏览器插件或 API 服务，对标 Octoparse 等传统抓取工具。商业化潜力高（低代码需求旺盛），但需解决反爬和动态渲染兼容性。</li>
+<li><strong>与 AI 代码生成器（如 Copilot、Cursor）深度整合</strong>：当 AI 生成的前端代码出现运行时错误时，自动调用 DevTools MCP 读取 console 错误和网络失败状态，反馈到 LLM 上下文，实现“生成-调试-修正”闭环。这是该项目最直接的商业化路径——作为 AI IDE 的插件功能。竞品：现有 AI 工具依赖用户手动粘贴错误日志。</li></ul></div>
+<div class="section"><h3>📊 推荐评估</h3><div class="score-row">
+  <div class="score-label">💰 商业化潜力 <span class="score-num">8/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#0969da;width:0" data-width="80%"></div></div>
+  <div class="score-reason">直接赋能 AI 编码助手和自动化测试，是 LLM 操作浏览器的关键基础设施。</div>
+</div>
+<div class="score-row">
+  <div class="score-label">🔧 落地难度 <span class="score-num">6/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#cf222e;width:0" data-width="60%"></div></div>
+  <div class="score-reason">需依赖 Chrome 实例和 MCP 客户端，且 DevTools Protocol 权限控制较复杂，但已有清晰 API 文档。</div>
+</div>
+<div class="score-row">
+  <div class="score-label">⭐ 值得关注度 <span class="score-num">9/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#8250df;width:0" data-width="90%"></div></div>
+  <div class="score-reason">这是 Google 官方出品，MCP 生态的标杆应用，对 AI Agent 控制浏览器场景有示范意义。</div>
+</div></div>
+<div class="section"><h3>⚔️ 锐评</h3>
+<div class="pros-cons">
+  <div class="pros"><h4>✅ 优点</h4><ul><li>官方背书（Chrome DevTools 团队）保证 API 质量与长期维护，比社区项目更可靠。</li>
+<li>采用 MCP 标准协议，天然适配主流 AI Agent 框架（如 LangChain、Vercel AI SDK），集成成本低。</li>
+<li>直接暴露 DevTools 核心能力（DOM、Network、Console），比 Puppeteer/Playwright 提供了更高层次的调试语义。</li></ul></div>
+  <div class="cons"><h4>❌ 缺点</h4><ul><li>当前仅支持单页面/单标签场景，多页面或跨域调试能力缺失，限制了复杂 SPA 调试。</li>
+<li>安全风险未明确解决：若 AI Agent 获得 DevTools 权限，理论上可窃取 localStorage/cookies，企业部署需额外沙箱隔离。</li>
+<li>依赖 Chrome 浏览器环境，无法用于纯 Node.js 后端调试，适用范围偏前端。</li></ul></div>
+</div>
+<div class="verdict">💬 Google 给 AI 装上“F12 键”——但别指望它替你修好所有 Bug，毕竟 DevTools 只是工具，AI 还得自己会看报错。</div></div>
+</div>
+<div class="card" id="card-9">
+  <div class="card-header">
+    <span class="rank rank-other">#9</span>
+    <span class="repo-name">
+      <a href="https://github.com/mukul975/Anthropic-Cybersecurity-Skills" target="_blank">mukul975/Anthropic-Cybersecurity-Skills</a>
+      <span class="badge-new">NEW</span>
+    </span>
+    <div class="meta">
+      <span><span class="lang-dot" style="background:#3572A5"></span> Python</span>
+      <span class="today-stars-count" data-count="281">⭐ 281 stars today</span>
+    </div>
+  </div>
+  <div class="desc">754 structured cybersecurity skills for AI agents · Mapped to 5 frameworks: MITRE ATT&amp;CK, NIST CSF 2.0, MITRE ATLAS, D3FEND &amp; NIST AI RMF · agentskills.io standard · Works with Claude Code, GitHub Copilot, Codex CLI, Cursor, Gemini CLI &amp; 20+ platforms · 26 security domains · Apache 2.0</div>
+  <div class="section"></div>
+<div class="section"><h3>📖 项目简介</h3><p style="color:#8b949e;font-size:0.93em;">这是一个结构化的网络安全技能知识库项目，为AI代理（如Claude Code、GitHub Copilot等）提供了754项精确映射到MITRE ATT&amp;CK、NIST CSF 2.0等五大框架的网络安全技能。它本质上是一个“AI代理的网络安全技能包”，旨在让AI工具能更专业、更结构化地理解和执行安全任务。</p></div>
+<div class="section"><h3>🎯 适合人群</h3><ul><li>安全工具SaaS产品的产品经理，希望快速为AI功能注入安全领域专业知识</li>
+<li>开发AI安全助手的工程师，需要标准化的技能图谱来训练或引导模型</li>
+<li>企业安全团队的技术决策者，评估将AI集成到现有安全运营流程的可行性</li>
+<li>安全咨询顾问，需要为不同框架（如NIST、MITRE）提供自动化合规检查的解决方案</li>
+<li>AI平台（如IDE插件、命令行工具）的开发者，希望增强产品的安全垂直能力</li></ul></div>
+<div class="section"><h3>💡 思维发散</h3><ul><li><strong>AI驱动的安全合规审计SaaS</strong>：基于此项目，开发一个“一键式”合规检查工具。用户只需输入公司网络配置或安全策略，AI代理就能对照NIST CSF 2.0或MITRE ATT&amp;CK框架，自动生成差距分析和修复建议。<strong>商业化价值判断</strong>：企业安全合规是刚需且预算充足，市场竞品（如Qualys、Rapid7）昂贵且复杂，此产品能以更低价格、更易用界面切入中小型企业市场。</li>
+<li><strong>嵌入式安全代码审查Copilot</strong>：将该项目技能库深度集成到VS Code、JetBrains等IDE的AI插件中。当开发者编写代码时，AI不仅能识别漏洞，还能引用具体MITRE ATT&amp;CK技术（如T1566钓鱼），并给出符合NIST框架的修复方案。<strong>商业化价值判断</strong>：对标GitHub Copilot Chat，但提供“安全专家级”的上下文和建议，可作为增值功能订阅收费。</li>
+<li><strong>安全剧本自动生成器</strong>：利用该技能库，让AI代理根据用户描述的安全事件（如“发现勒索软件迹象”），自动生成包含MITRE ATT&amp;CK技术映射、D3FEND防御步骤的标准化响应剧本。<strong>商业化价值判断</strong>：可集成到Splunk、ELK等SIEM平台，作为插件销售。市场空白在于现有剧本是人工编写且维护成本高，AI生成能大幅降低时间和人力成本。</li>
+<li><strong>AI安全培训与考核平台</strong>：创建一个互动式平台，利用这754项技能，动态生成针对不同框架的模拟攻击场景和防御任务。用户（安全工程师）在虚拟环境中与AI代理协作，完成MITRE ATT&amp;CK的渗透测试或NIST CSF的合规检查。<strong>商业化价值判断</strong>：面向企业安全团队培训预算，可替代部分昂贵的线下培训。竞品如Cybrary、TryHackMe，但此平台强调与AI的协作和框架对齐，差异化明显。</li>
+<li><strong>跨平台安全技能统一接口</strong>：开发一个API服务，封装该项目。任何AI工具（如自定义ChatGPT、企业内部的Agent）都能通过该API查询特定框架下的安全技能，并获取标准化的行动指令。<strong>商业化价值判断</strong>：类似“安全版Stripe”，按API调用次数收费。市场竞品少，因为大多数安全知识库是孤立的，此项目提供了一个统一的、开源的桥梁。</li></ul></div>
+<div class="section"><h3>📊 推荐评估</h3><div class="score-row">
+  <div class="score-label">💰 商业化潜力 <span class="score-num">8/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#0969da;width:0" data-width="80%"></div></div>
+  <div class="score-reason">安全领域AI应用正热，结构化知识库是稀缺资产，可衍生多种付费产品。</div>
+</div>
+<div class="score-row">
+  <div class="score-label">🔧 落地难度 <span class="score-num">6/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#cf222e;width:0" data-width="60%"></div></div>
+  <div class="score-reason">技术门槛低（Python，API调用），但需要理解五大安全框架的差异和用户场景，产品化需投入。</div>
+</div>
+<div class="score-row">
+  <div class="score-label">⭐ 值得关注度 <span class="score-num">9/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#8250df;width:0" data-width="90%"></div></div>
+  <div class="score-reason">对AI+安全赛道的产品经理和决策者来说，这是一个不可忽视的基础设施级项目。</div>
+</div></div>
+<div class="section"><h3>⚔️ 锐评</h3>
+<div class="pros-cons">
+  <div class="pros"><h4>✅ 优点</h4><ul><li><strong>结构化权威性</strong>：直接映射五大主流安全框架，省去了AI模型自行“学习”和“对齐”的巨大成本，是安全领域AI应用的“标准教科书”。</li>
+<li><strong>生态兼容性好</strong>：明确标注支持Claude Code、Copilot等20+平台，降低了集成风险，让产品经理能快速验证想法，而不必担心工具锁死。</li>
+<li><strong>Apache 2.0许可</strong>：开源且商业友好，可以放心地将其嵌入到自己的商业产品中，无需担心许可纠纷，降低了法律风险。</li></ul></div>
+  <div class="cons"><h4>❌ 缺点</h4><ul><li><strong>知识库的时效性挑战</strong>：网络安全威胁演进极快，MITRE ATT&amp;CK等框架每年都有更新。该项目若维护不及时，AI代理基于过时技能做出的判断可能产生严重误导。这是一个“越用越需要持续投入”的工程。</li>
+<li><strong>缺少上下文和优先级</strong>：754项技能是平铺的，未标注“在何种场景下优先使用”。产品经理需要额外开发一个“推理引擎”来根据用户环境（如行业、资产价值）筛选和排序技能，否则AI代理可能会给出“正确但无用”的建议。</li>
+<li><strong>依赖外部工具生态</strong>：项目本身只是一个JSON/结构化数据源，最终价值取决于集成它的AI工具（如Copilot、Claude）。如果这些工具不主动优化对安全技能的支持，项目的实际影响力会受限。</li></ul></div>
+</div>
+<div class="verdict">💬 这是AI安全赛道的“乐高积木包”——结构完美、组件齐全，但要把它们拼成能赚钱的城堡，还得靠产品经理自己画图纸、盖屋顶。</div></div>
+</div>
+<div class="card" id="card-10">
+  <div class="card-header">
+    <span class="rank rank-other">#10</span>
+    <span class="repo-name">
+      <a href="https://github.com/presenton/presenton" target="_blank">presenton/presenton</a>
+      <span class="badge-new">NEW</span>
+    </span>
+    <div class="meta">
+      <span><span class="lang-dot" style="background:#3178c6"></span> TypeScript</span>
+      <span class="today-stars-count" data-count="241">⭐ 241 stars today</span>
+    </div>
+  </div>
+  <div class="desc">Open-Source AI Presentation Generator and API (Gamma, Beautiful AI, Decktopus Alternative)</div>
+  <div class="section"></div>
+<div class="section"><h3>📖 项目简介</h3><p style="color:#8b949e;font-size:0.93em;">Presenton 是一个开源的 AI 演示文稿生成器及 API，旨在成为 Gamma、Beautiful AI、Decktopus 等商业工具的替代方案。它解决了用户从零开始制作演示文稿的痛点，通过 AI 自动生成结构、内容和设计，同时提供可编程 API 进行集成。</p></div>
+<div class="section"><h3>🎯 适合人群</h3><ul><li>产品经理：需要快速创建产品演示、竞品分析或内部汇报的初稿</li>
+<li>技术决策者：评估开源替代方案以降低企业级演示工具的授权成本</li>
+<li>开发者：需要将演示生成能力嵌入到 SaaS 平台或工作流中的后端工程师</li>
+<li>教育工作者：批量生成课程大纲或教学幻灯片</li>
+<li>自由职业者：高效产出客户提案或项目总结</li></ul></div>
+<div class="section"><h3>💡 思维发散</h3><ul><li><strong>嵌入式演示工厂</strong>：将 Presenton 的 API 打包成 SaaS 插件的“演示即服务”模块，例如 CRM 系统内一键生成客户案例演示。商业化价值：高，企业客户愿意为工作流自动化付费，现有竞品如 Gamma 的 API 价格昂贵且封闭，开源方案可提供更灵活的定制和定价。</li>
+<li><strong>个性化营销物料生成器</strong>：结合用户行为数据（如网页浏览记录）和 Presenton，自动生成针对特定客户群的动态演示，用于销售跟进。商业化价值：中高，可切入 MarTech 市场，与 HubSpot 等工具竞争，但需解决数据隐私和设计一致性。</li>
+<li><strong>AI 驱动的内部知识库转演示</strong>：集成 Notion、Confluence 等知识管理工具，自动提取文档摘要并生成周报/月报演示。商业化价值：中，企业知识管理痛点明确，但需打磨内容提取的准确性，避免生成“废话幻灯片”。</li>
+<li><strong>跨语言实时演示翻译与生成</strong>：结合 Presenton 和机器翻译 API，输入多语言内容源，自动生成双语或本地化演示，服务于跨国团队。商业化价值：中，市场已有 DeepL 等翻译工具，但演示格式的适配是壁垒，可做差异化。</li>
+<li><strong>低代码演示编辑器</strong>：基于 Presenton 核心，构建一个拖拽式编辑器，让非技术用户微调 AI 生成结果，并导出为 PPTX/PDF。商业化价值：高，直接对标 Beautiful AI 的付费版，但开源可降低门槛，需在前端体验上投入。</li></ul></div>
+<div class="section"><h3>📊 推荐评估</h3><div class="score-row">
+  <div class="score-label">💰 商业化潜力 <span class="score-num">7/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#0969da;width:0" data-width="70%"></div></div>
+  <div class="score-reason">开源替代 Gamma 的定位明确，但需建立付费增值服务（如企业级托管、高级模板）才能持续盈利。</div>
+</div>
+<div class="score-row">
+  <div class="score-label">🔧 落地难度 <span class="score-num">5/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#cf222e;width:0" data-width="50%"></div></div>
+  <div class="score-reason">核心 AI 生成逻辑已有开源实现（如 GPT + 模板引擎），但设计质量和用户交互体验是难点，需大量打磨。</div>
+</div>
+<div class="score-row">
+  <div class="score-label">⭐ 值得关注度 <span class="score-num">8/10</span></div>
+  <div class="score-bar"><div class="score-bar-fill" style="background:#8250df;width:0" data-width="80%"></div></div>
+  <div class="score-reason">演示生成是高频刚需，开源版有望吸引大量用户和贡献者，是值得早期跟进的赛道。</div>
+</div></div>
+<div class="section"><h3>⚔️ 锐评</h3>
+<div class="pros-cons">
+  <div class="pros"><h4>✅ 优点</h4><ul><li>精准切入 Gamma、Beautiful AI 的高价痛点，开源即“免费+可控”，对中小团队极具吸引力。</li>
+<li>提供 API 而非单一 UI，适配多种二次开发场景，技术灵活性远超闭源竞品。</li>
+<li>用 TypeScript 开发，生态兼容性好，便于前端和 Node.js 开发者快速上手贡献。</li></ul></div>
+  <div class="cons"><h4>❌ 缺点</h4><ul><li>开源项目常见通病：文档和示例 API 不够完善，可能劝退非技术用户。</li>
+<li>AI 生成的设计质量高度依赖底层模型（如 GPT-4），若模型成本高，项目可能陷入“免费但不实用”的窘境。</li>
+<li>商业模型不清晰：如果只是做“免费版 Gamma”，没有独特的 AI 能力或设计引擎，很难与 Notion AI、Canva 等巨头的集成功能竞争。</li></ul></div>
+</div>
+<div class="verdict">💬 开源演示界的“平替”搅局者，但想叫板 Gamma 还得先把“AI 审美”练好。</div></div>
+</div>
+  <div class="footer">
+    数据来源：<a href="https://github.com/trending" target="_blank">GitHub Trending</a> ·
+    分析引擎：DeepSeek AI · 生成时间：2026-05-24 04:59
+  </div>
+</div>
+</div>
+<script>
+(function() {
+  const links = document.querySelectorAll('#sidebar a');
+  const cards = document.querySelectorAll('.card[id]');
+
+  // 1. 卡片入场 + 评分条动画 + 侧边栏高亮
+  const sectionObserver = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        // 卡片入场
+        entry.target.classList.add('visible');
+
+        // 侧边栏高亮
+        links.forEach(function(a) {
+          a.classList.toggle('active', a.getAttribute('href') === '#' + entry.target.id);
+        });
+
+        // 评分条动画
+        var bars = entry.target.querySelectorAll('.score-bar-fill');
+        bars.forEach(function(bar) {
+          bar.style.width = bar.getAttribute('data-width');
+        });
+      }
+    });
+  }, { rootMargin: '-10% 0px -15% 0px', threshold: 0.1 });
+
+  cards.forEach(function(c) { sectionObserver.observe(c); });
+
+  // 2. Star 计数动画
+  document.querySelectorAll('.today-stars-count').forEach(function(el) {
+    var target = parseInt(el.getAttribute('data-count')) || 0;
+    var duration = 1000;
+    var start = performance.now();
+    function update(now) {
+      var elapsed = now - start;
+      var progress = Math.min(elapsed / duration, 1);
+      var eased = 1 - Math.pow(1 - progress, 3);
+      el.textContent = Math.round(target * eased).toLocaleString();
+      if (progress < 1) requestAnimationFrame(update);
+    }
+    requestAnimationFrame(update);
+  });
+})();
+</script>
+</body>
+</html>
