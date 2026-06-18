@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GitHub Trending 日报 — 2026-06-18</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #ffffff; color: #24292f; font-family: -apple-system, BlinkMacSystemFont,
+      'Segoe UI', 'Noto Sans SC', 'PingFang SC', sans-serif;
+    line-height: 1.7;
+  }
+  .main-content { margin-left: 260px; padding: 40px 20px; }
+  .container { max-width: 900px; margin: 0 auto; }
+  .header {
+    text-align: center; padding: 60px 0 40px;
+    border-bottom: 1px solid #d0d7de; margin-bottom: 48px;
+  }
+  .header h1 {
+    font-size: 2.2em; background: linear-gradient(135deg, #0969da, #8250df);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .header .date { color: #656d76; margin-top: 8px; font-size: 1.05em; }
+  .header .summary {
+    margin-top: 20px; padding: 16px 24px; background: #f6f8fa;
+    border-radius: 8px; border-left: 3px solid #0969da;
+    text-align: left; color: #656d76; font-size: 0.95em;
+  }
+  .card {
+    background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 12px;
+    padding: 32px; margin-bottom: 28px;
+    transition: border-color 0.2s, box-shadow 0.2s; scroll-margin-top: 24px;
+  }
+  .card:hover { border-color: #0969da; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .card-header {
+    display: flex; align-items: center; gap: 14px; margin-bottom: 18px;
+    flex-wrap: wrap;
+  }
+  .rank {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 36px; height: 36px; border-radius: 50%;
+    font-weight: 700; font-size: 0.95em; flex-shrink: 0;
+  }
+  .rank-1 { background: #f0c419; color: #fff; }
+  .rank-2 { background: #a3b4c2; color: #fff; }
+  .rank-3 { background: #cd7f32; color: #fff; }
+  .rank-other { background: #eaeef2; color: #656d76; }
+  .repo-name { font-size: 1.15em; font-weight: 600; }
+  .repo-name a { color: #0969da; text-decoration: none; }
+  .repo-name a:hover { text-decoration: underline; }
+  .meta { display: flex; gap: 16px; flex-wrap: wrap; font-size: 0.85em; color: #656d76; }
+  .meta span { display: inline-flex; align-items: center; gap: 4px; }
+  .lang-dot {
+    display: inline-block; width: 10px; height: 10px; border-radius: 50%;
+  }
+  .desc { color: #656d76; font-size: 0.93em; margin-bottom: 20px; line-height: 1.6; }
+  .section { margin-top: 20px; }
+  .section h3 { font-size: 1em; margin-bottom: 10px; color: #24292f; }
+  .section ul { padding-left: 20px; color: #24292f; font-size: 0.93em; }
+  .section ul li { margin-bottom: 6px; }
+  .pros-cons { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .pros { background: #dafbe1; border-radius: 8px; padding: 16px; }
+  .cons { background: #ffebe9; border-radius: 8px; padding: 16px; }
+  .pros h4 { color: #1a7f37; font-size: 0.93em; margin-bottom: 8px; }
+  .cons h4 { color: #cf222e; font-size: 0.93em; margin-bottom: 8px; }
+  .pros ul, .cons ul { color: #24292f; font-size: 0.9em; }
+  .verdict { margin-top: 16px; padding: 12px 16px; background: #f3e8ff;
+    border-radius: 6px; font-style: italic; color: #8250df; font-size: 0.93em; }
+  .footer {
+    text-align: center; padding: 40px 0; color: #656d76; font-size: 0.85em;
+    border-top: 1px solid #d0d7de; margin-top: 20px;
+  }
+  .footer a { color: #0969da; }
+
+  /* 左侧目录 */
+  #sidebar {
+    position: fixed; left: 0; top: 0; width: 250px; height: 100vh;
+    background: #f6f8fa; border-right: 1px solid #d0d7de;
+    overflow-y: auto; padding: 24px 0; z-index: 100;
+  }
+  #sidebar .toc-title {
+    padding: 0 20px 16px; font-size: 0.85em; font-weight: 700;
+    color: #656d76; text-transform: uppercase; letter-spacing: 0.05em;
+    border-bottom: 1px solid #d0d7de; margin-bottom: 8px;
+  }
+  #sidebar a {
+    display: block; padding: 8px 20px; color: #656d76;
+    text-decoration: none; font-size: 0.87em;
+    border-left: 2px solid transparent; transition: all 0.15s;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  #sidebar a:hover { color: #24292f; background: #eaeef2; }
+  #sidebar a.active {
+    color: #0969da; background: #eaeef2;
+    border-left-color: #0969da;
+  }
+  #sidebar a .toc-rank {
+    display: inline-block; width: 22px; font-weight: 600; color: #0969da;
+  }
+  #sidebar a .toc-dot-new {
+    display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+    background: #ff9800; margin-left: 4px; vertical-align: middle;
+  }
+
+  /* 技术风向总结 */
+  .trend-summary {
+    background: linear-gradient(135deg, #f6f8fa 0%, #e8f0fe 50%, #f6f8fa 100%);
+    background-size: 200% 200%;
+    animation: gradientShift 8s ease infinite;
+    border: 1px solid #d0d7de; border-radius: 12px;
+    padding: 28px 32px; margin-bottom: 40px;
+    border-left: 4px solid #0969da;
+  }
+  .trend-summary h2 {
+    font-size: 1.15em; color: #0969da; margin-bottom: 12px;
+  }
+  .trend-summary p {
+    font-size: 0.95em; color: #24292f; line-height: 1.8;
+  }
+  @keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  /* 卡片入场动画 */
+  .card {
+    opacity: 0; transform: translateY(30px);
+    transition: opacity 0.5s ease, transform 0.5s ease, border-color 0.2s, box-shadow 0.2s;
+  }
+  .card.visible { opacity: 1; transform: translateY(0); }
+
+  /* NEW/STREAK 徽章 */
+  .badge-new {
+    display: inline-block; padding: 2px 10px; border-radius: 12px;
+    font-size: 0.75em; font-weight: 700; color: #fff; background: #2da44e;
+    animation: badgePulse 2s ease-in-out infinite;
+  }
+  .badge-streak {
+    display: inline-block; padding: 2px 10px; border-radius: 12px;
+    font-size: 0.75em; font-weight: 700; color: #fff; background: #8250df;
+  }
+  .badge-recurring {
+    display: inline-block; padding: 2px 10px; border-radius: 12px;
+    font-size: 0.75em; font-weight: 700; color: #656d76; background: #eaeef2;
+  }
+  @keyframes badgePulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(45, 164, 78, 0.4); }
+    50% { box-shadow: 0 0 0 6px rgba(45, 164, 78, 0); }
+  }
+
+  /* 评分进度条 */
+  .score-row { margin-bottom: 14px; }
+  .score-label { font-size: 0.9em; font-weight: 600; color: #24292f; margin-bottom: 4px; }
+  .score-num { font-weight: 700; color: #0969da; margin-left: 4px; }
+  .score-bar {
+    height: 8px; background: #eaeef2; border-radius: 4px; overflow: hidden;
+    margin-bottom: 2px;
+  }
+  .score-bar-fill {
+    height: 100%; border-radius: 4px;
+    transition: width 1s ease;
+  }
+  .score-reason {
+    font-size: 0.82em; color: #656d76;
+  }
+
+  /* 今日 Star 高亮 */
+  .today-stars-count {
+    font-weight: 700; color: #0969da; font-size: 0.9em;
+  }
+
+  @media (max-width: 768px) {
+    #sidebar { display: none; }
+    .main-content { margin-left: 0; padding: 20px 12px; }
+    .card { padding: 20px; }
+    .pros-cons { grid-template-columns: 1fr; }
+    .header h1 { font-size: 1.5em; }
+  }
+</style>
+</head>
+<body>
+<nav id="sidebar">
+  <div class="toc-title">📋 今日目录</div>
+      <a href="#card-1"><span class="toc-rank">#1</span>DeusData/codebase-memory-mcp<span class="toc-dot-new"></span></a>
+      <a href="#card-2"><span class="toc-rank">#2</span>n0-computer/iroh<span class="toc-dot-new"></span></a>
+      <a href="#card-3"><span class="toc-rank">#3</span>Panniantong/Agent-Reach<span class="toc-dot-new"></span></a>
+      <a href="#card-4"><span class="toc-rank">#4</span>meshery/meshery<span class="toc-dot-new"></span></a>
+      <a href="#card-5"><span class="toc-rank">#5</span>obra/superpowers<span class="toc-dot-new"></span></a>
+      <a href="#card-6"><span class="toc-rank">#6</span>google-research/timesfm<span class="toc-dot-new"></span></a>
+      <a href="#card-7"><span class="toc-rank">#7</span>RocketChat/Rocket.Chat<span class="toc-dot-new"></span></a>
+      <a href="#card-8"><span class="toc-rank">#8</span>continuedev/continue<span class="toc-dot-new"></span></a>
+      <a href="#card-9"><span class="toc-rank">#9</span>penpot/penpot<span class="toc-dot-new"></span></a>
+      <a href="#card-10"><span class="toc-rank">#10</span>krahets/hello-algo<span class="toc-dot-new"></span></a>
+</nav>
+<div class="main-content">
+<div class="container">
+  <div class="header">
+    <h1>🔥 GitHub Trending 日报</h1>
+    <div class="date">2026-06-18</div>
+    <div class="summary">
+      本日报由 AI 自动生成，每日精选 GitHub Trending Top 10 项目进行深度解读，
+      涵盖项目简介、适合人群、PM推荐评估、思维发散与犀利锐评，助你快速把握技术脉搏。
+    </div>
+  </div>
+  <div class="trend-summary">
+    <h2>🌊 今日技术风向</h2>
+    <p>今日技术风向总结生成失败，请稍后重试。</p>
+  </div>
+  
+<div class="card" id="card-1">
+  <div class="card-header">
+    <span class="rank rank-1">#1</span>
+    <span class="repo-name">
+      <a href="https://github.com/DeusData/codebase-memory-mcp" target="_blank">DeusData/codebase-memory-mcp</a>
+      <span class="badge-new">NEW</span>
+    </span>
+    <div class="meta">
+      <span><span class="lang-dot" style="background:#555555"></span> C</span>
+      <span class="today-stars-count" data-count="371">⭐ 371 stars today</span>
+    </div>
+  </div>
+  <div class="desc">High-performance code intelligence MCP server. Indexes codebases into a persistent knowledge graph — average repo in milliseconds. 158 languages, sub-ms queries, 99% fewer tokens. Single static binary, zero dependencies.</div>
+  <div class="section"></div>
+<div class="section"><h3>📖 项目简介</h3><p style="color:#8b949e;font-size:0.93em;">分析暂不可用</p></div>
+<div class="section"><h3>⚔️ 锐评</h3>
+<div class="pros-cons">
+  <div class="pros"><h4>✅ 优点</h4><ul><li>暂无</li></ul></div>
+  <div class="cons"><h4>❌ 缺点</h4><ul><li>暂无</li></ul></div>
+</div>
+<div class="verdict">💬 分析过程出现问题</div></div>
+</div>
+<div class="card" id="card-2">
+  <div class="card-header">
+    <span class="rank rank-2">#2</span>
+    <span class="repo-name">
+      <a href="https://github.com/n0-computer/iroh" target="_blank">n0-computer/iroh</a>
+      <span class="badge-new">NEW</span>
+    </span>
+    <div class="meta">
+      <span><span class="lang-dot" style="background:#dea584"></span> Rust</span>
+      <span class="today-stars-count" data-count="421">⭐ 421 stars today</span>
+    </div>
+  </div>
+  <div class="desc">IP addresses break, dial keys instead. Modular networking stack in Rust.</div>
+  <div class="section"></div>
+<div class="section"><h3>📖 项目简介</h3><p style="color:#8b949e;font-size:0.93em;">分析暂不可用</p></div>
+<div class="section"><h3>⚔️ 锐评</h3>
+<div class="pros-cons">
+  <div class="pros"><h4>✅ 优点</h4><ul><li>暂无</li></ul></div>
+  <div class="cons"><h4>❌ 缺点</h4><ul><li>暂无</li></ul></div>
+</div>
+<div class="verdict">💬 分析过程出现问题</div></div>
+</div>
+<div class="card" id="card-3">
+  <div class="card-header">
+    <span class="rank rank-3">#3</span>
+    <span class="repo-name">
+      <a href="https://github.com/Panniantong/Agent-Reach" target="_blank">Panniantong/Agent-Reach</a>
+      <span class="badge-new">NEW</span>
+    </span>
+    <div class="meta">
+      <span><span class="lang-dot" style="background:#3572A5"></span> Python</span>
+      <span class="today-stars-count" data-count="1161">⭐ 1,161 stars today</span>
+    </div>
+  </div>
+  <div class="desc">Give your AI agent eyes to see the entire internet. Read &amp; search Twitter, Reddit, YouTube, GitHub, Bilibili, XiaoHongShu — one CLI, zero API fees.</div>
+  <div class="section"></div>
+<div class="section"><h3>📖 项目简介</h3><p style="color:#8b949e;font-size:0.93em;">分析暂不可用</p></div>
+<div class="section"><h3>⚔️ 锐评</h3>
+<div class="pros-cons">
+  <div class="pros"><h4>✅ 优点</h4><ul><li>暂无</li></ul></div>
+  <div class="cons"><h4>❌ 缺点</h4><ul><li>暂无</li></ul></div>
+</div>
+<div class="verdict">💬 分析过程出现问题</div></div>
+</div>
+<div class="card" id="card-4">
+  <div class="card-header">
+    <span class="rank rank-other">#4</span>
+    <span class="repo-name">
+      <a href="https://github.com/meshery/meshery" target="_blank">meshery/meshery</a>
+      <span class="badge-new">NEW</span>
+    </span>
+    <div class="meta">
+      <span><span class="lang-dot" style="background:#3178c6"></span> TypeScript</span>
+      <span class="today-stars-count" data-count="196">⭐ 196 stars today</span>
+    </div>
+  </div>
+  <div class="desc">Meshery, the cloud native manager</div>
+  <div class="section"></div>
+<div class="section"><h3>📖 项目简介</h3><p style="color:#8b949e;font-size:0.93em;">分析暂不可用</p></div>
+<div class="section"><h3>⚔️ 锐评</h3>
+<div class="pros-cons">
+  <div class="pros"><h4>✅ 优点</h4><ul><li>暂无</li></ul></div>
+  <div class="cons"><h4>❌ 缺点</h4><ul><li>暂无</li></ul></div>
+</div>
+<div class="verdict">💬 分析过程出现问题</div></div>
+</div>
+<div class="card" id="card-5">
+  <div class="card-header">
+    <span class="rank rank-other">#5</span>
+    <span class="repo-name">
+      <a href="https://github.com/obra/superpowers" target="_blank">obra/superpowers</a>
+      <span class="badge-new">NEW</span>
+    </span>
+    <div class="meta">
+      <span><span class="lang-dot" style="background:#8b949e"></span> Shell</span>
+      <span class="today-stars-count" data-count="1129">⭐ 1,129 stars today</span>
+    </div>
+  </div>
+  <div class="desc">An agentic skills framework &amp; software development methodology that works.</div>
+  <div class="section"></div>
+<div class="section"><h3>📖 项目简介</h3><p style="color:#8b949e;font-size:0.93em;">分析暂不可用</p></div>
+<div class="section"><h3>⚔️ 锐评</h3>
+<div class="pros-cons">
+  <div class="pros"><h4>✅ 优点</h4><ul><li>暂无</li></ul></div>
+  <div class="cons"><h4>❌ 缺点</h4><ul><li>暂无</li></ul></div>
+</div>
+<div class="verdict">💬 分析过程出现问题</div></div>
+</div>
+<div class="card" id="card-6">
+  <div class="card-header">
+    <span class="rank rank-other">#6</span>
+    <span class="repo-name">
+      <a href="https://github.com/google-research/timesfm" target="_blank">google-research/timesfm</a>
+      <span class="badge-new">NEW</span>
+    </span>
+    <div class="meta">
+      <span><span class="lang-dot" style="background:#3572A5"></span> Python</span>
+      <span class="today-stars-count" data-count="606">⭐ 606 stars today</span>
+    </div>
+  </div>
+  <div class="desc">TimesFM (Time Series Foundation Model) is a pretrained time-series foundation model developed by Google Research for time-series forecasting.</div>
+  <div class="section"></div>
+<div class="section"><h3>📖 项目简介</h3><p style="color:#8b949e;font-size:0.93em;">分析暂不可用</p></div>
+<div class="section"><h3>⚔️ 锐评</h3>
+<div class="pros-cons">
+  <div class="pros"><h4>✅ 优点</h4><ul><li>暂无</li></ul></div>
+  <div class="cons"><h4>❌ 缺点</h4><ul><li>暂无</li></ul></div>
+</div>
+<div class="verdict">💬 分析过程出现问题</div></div>
+</div>
+<div class="card" id="card-7">
+  <div class="card-header">
+    <span class="rank rank-other">#7</span>
+    <span class="repo-name">
+      <a href="https://github.com/RocketChat/Rocket.Chat" target="_blank">RocketChat/Rocket.Chat</a>
+      <span class="badge-new">NEW</span>
+    </span>
+    <div class="meta">
+      <span><span class="lang-dot" style="background:#3178c6"></span> TypeScript</span>
+      <span class="today-stars-count" data-count="22">⭐ 22 stars today</span>
+    </div>
+  </div>
+  <div class="desc">The Secure CommsOS™ for mission-critical operations</div>
+  <div class="section"></div>
+<div class="section"><h3>📖 项目简介</h3><p style="color:#8b949e;font-size:0.93em;">分析暂不可用</p></div>
+<div class="section"><h3>⚔️ 锐评</h3>
+<div class="pros-cons">
+  <div class="pros"><h4>✅ 优点</h4><ul><li>暂无</li></ul></div>
+  <div class="cons"><h4>❌ 缺点</h4><ul><li>暂无</li></ul></div>
+</div>
+<div class="verdict">💬 分析过程出现问题</div></div>
+</div>
+<div class="card" id="card-8">
+  <div class="card-header">
+    <span class="rank rank-other">#8</span>
+    <span class="repo-name">
+      <a href="https://github.com/continuedev/continue" target="_blank">continuedev/continue</a>
+      <span class="badge-new">NEW</span>
+    </span>
+    <div class="meta">
+      <span><span class="lang-dot" style="background:#3178c6"></span> TypeScript</span>
+      <span class="today-stars-count" data-count="49">⭐ 49 stars today</span>
+    </div>
+  </div>
+  <div class="desc">open-source coding agent</div>
+  <div class="section"></div>
+<div class="section"><h3>📖 项目简介</h3><p style="color:#8b949e;font-size:0.93em;">分析暂不可用</p></div>
+<div class="section"><h3>⚔️ 锐评</h3>
+<div class="pros-cons">
+  <div class="pros"><h4>✅ 优点</h4><ul><li>暂无</li></ul></div>
+  <div class="cons"><h4>❌ 缺点</h4><ul><li>暂无</li></ul></div>
+</div>
+<div class="verdict">💬 分析过程出现问题</div></div>
+</div>
+<div class="card" id="card-9">
+  <div class="card-header">
+    <span class="rank rank-other">#9</span>
+    <span class="repo-name">
+      <a href="https://github.com/penpot/penpot" target="_blank">penpot/penpot</a>
+      <span class="badge-new">NEW</span>
+    </span>
+    <div class="meta">
+      <span><span class="lang-dot" style="background:#8b949e"></span> Clojure</span>
+      <span class="today-stars-count" data-count="70">⭐ 70 stars today</span>
+    </div>
+  </div>
+  <div class="desc">Penpot: The open-source design tool for design and code collaboration</div>
+  <div class="section"></div>
+<div class="section"><h3>📖 项目简介</h3><p style="color:#8b949e;font-size:0.93em;">分析暂不可用</p></div>
+<div class="section"><h3>⚔️ 锐评</h3>
+<div class="pros-cons">
+  <div class="pros"><h4>✅ 优点</h4><ul><li>暂无</li></ul></div>
+  <div class="cons"><h4>❌ 缺点</h4><ul><li>暂无</li></ul></div>
+</div>
+<div class="verdict">💬 分析过程出现问题</div></div>
+</div>
+<div class="card" id="card-10">
+  <div class="card-header">
+    <span class="rank rank-other">#10</span>
+    <span class="repo-name">
+      <a href="https://github.com/krahets/hello-algo" target="_blank">krahets/hello-algo</a>
+      <span class="badge-new">NEW</span>
+    </span>
+    <div class="meta">
+      <span><span class="lang-dot" style="background:#b07219"></span> Java</span>
+      <span class="today-stars-count" data-count="96">⭐ 96 stars today</span>
+    </div>
+  </div>
+  <div class="desc">《Hello 算法》：动画图解、一键运行的数据结构与算法教程。支持简中、繁中、English、日本語，提供 Python, Java, C++, C, C#, JS, Go, Swift, Rust, Ruby, Kotlin, TS, Dart 等代码实现</div>
+  <div class="section"></div>
+<div class="section"><h3>📖 项目简介</h3><p style="color:#8b949e;font-size:0.93em;">分析暂不可用</p></div>
+<div class="section"><h3>⚔️ 锐评</h3>
+<div class="pros-cons">
+  <div class="pros"><h4>✅ 优点</h4><ul><li>暂无</li></ul></div>
+  <div class="cons"><h4>❌ 缺点</h4><ul><li>暂无</li></ul></div>
+</div>
+<div class="verdict">💬 分析过程出现问题</div></div>
+</div>
+  <div class="footer">
+    数据来源：<a href="https://github.com/trending" target="_blank">GitHub Trending</a> ·
+    分析引擎：DeepSeek AI · 生成时间：2026-06-18 05:49
+  </div>
+</div>
+</div>
+<script>
+(function() {
+  const links = document.querySelectorAll('#sidebar a');
+  const cards = document.querySelectorAll('.card[id]');
+
+  // 1. 卡片入场 + 评分条动画 + 侧边栏高亮
+  const sectionObserver = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        // 卡片入场
+        entry.target.classList.add('visible');
+
+        // 侧边栏高亮
+        links.forEach(function(a) {
+          a.classList.toggle('active', a.getAttribute('href') === '#' + entry.target.id);
+        });
+
+        // 评分条动画
+        var bars = entry.target.querySelectorAll('.score-bar-fill');
+        bars.forEach(function(bar) {
+          bar.style.width = bar.getAttribute('data-width');
+        });
+      }
+    });
+  }, { rootMargin: '-10% 0px -15% 0px', threshold: 0.1 });
+
+  cards.forEach(function(c) { sectionObserver.observe(c); });
+
+  // 2. Star 计数动画
+  document.querySelectorAll('.today-stars-count').forEach(function(el) {
+    var target = parseInt(el.getAttribute('data-count')) || 0;
+    var duration = 1000;
+    var start = performance.now();
+    function update(now) {
+      var elapsed = now - start;
+      var progress = Math.min(elapsed / duration, 1);
+      var eased = 1 - Math.pow(1 - progress, 3);
+      el.textContent = Math.round(target * eased).toLocaleString();
+      if (progress < 1) requestAnimationFrame(update);
+    }
+    requestAnimationFrame(update);
+  });
+})();
+</script>
+</body>
+</html>
